@@ -1,10 +1,130 @@
-{
-  "title": "Simulado - Prova Final Prática Médica",
-  "description": "Simulado com 40 questões detalhadas, focadas em casos clínicos e semiologia, baseadas nos padrões das provas e resumos fornecidos.",
-  "questions": [
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado - Prova Final Prática Médica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateX(5px);
+            background-color: #f3f4f6;
+        }
+        .option-btn.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .option-btn.correct {
+            border-color: #10b981;
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .option-btn.incorrect {
+            border-color: #ef4444;
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800 selection:bg-blue-200">
+
+    <div class="max-w-4xl mx-auto pt-10 pb-20 px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight sm:text-4xl">Simulado Final PAPM III</h1>
+            <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">40 questões baseadas em casos clínicos e semiologia avançada.</p>
+        </header>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="bg-white shadow-xl rounded-2xl p-8 text-center border border-gray-100">
+            <div class="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold mb-4">Instruções</h2>
+            <p class="text-gray-600 mb-8 max-w-lg mx-auto">Leia atentamente cada caso clínico. Após selecionar a resposta e confirmar, você receberá o gabarito e a justificativa detalhada com base na propedêutica médica.</p>
+            <button onclick="startQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                Iniciar Simulado
+            </button>
+        </div>
+
+        <!-- Quiz Screen (Hidden initially) -->
+        <div id="quiz-screen" class="hidden bg-white shadow-xl rounded-2xl p-6 sm:p-10 border border-gray-100 relative">
+            
+            <div class="flex justify-between items-center mb-6">
+                <span id="question-counter" class="text-sm font-semibold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">Questão 1 de 40</span>
+                <span id="score-display" class="text-sm font-medium text-gray-500">Acertos: 0</span>
+            </div>
+
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 2.5%"></div>
+            </div>
+
+            <h3 id="question-text" class="text-xl sm:text-2xl font-semibold text-gray-900 mb-6 leading-relaxed">
+                Texto da questão vai aqui...
+            </h3>
+
+            <div id="options-container" class="space-y-4 mb-8">
+                <!-- Options injected via JS -->
+            </div>
+
+            <!-- Feedback Area (Justification) -->
+            <div id="feedback-container" class="hidden mb-8 p-5 rounded-lg border-l-4">
+                <h4 id="feedback-title" class="font-bold text-lg mb-2">Gabarito</h4>
+                <p id="feedback-text" class="text-gray-700 leading-relaxed"></p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end border-t pt-6 mt-6">
+                <button id="btn-confirm" onclick="confirmAnswer()" disabled class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-lg shadow transition-colors">
+                    Confirmar Resposta
+                </button>
+                <button id="btn-next" onclick="nextQuestion()" class="hidden bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow transition-colors flex items-center">
+                    Próxima Questão
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Screen (Hidden initially) -->
+        <div id="result-screen" class="hidden bg-white shadow-xl rounded-2xl p-8 text-center border border-gray-100">
+            <div id="result-icon" class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 text-white">
+                <!-- Icon injected via JS -->
+            </div>
+            <h2 class="text-3xl font-bold mb-2">Simulado Concluído!</h2>
+            <p class="text-gray-600 mb-6 text-lg">Aqui está o seu desempenho final:</p>
+            
+            <div class="flex justify-center items-center space-x-8 mb-8">
+                <div class="text-center">
+                    <p class="text-5xl font-extrabold text-blue-600" id="final-score">0</p>
+                    <p class="text-sm text-gray-500 font-medium uppercase mt-1">Acertos</p>
+                </div>
+                <div class="w-px h-16 bg-gray-200"></div>
+                <div class="text-center">
+                    <p class="text-5xl font-extrabold text-gray-900">40</p>
+                    <p class="text-sm text-gray-500 font-medium uppercase mt-1">Total</p>
+                </div>
+            </div>
+
+            <p id="performance-msg" class="text-xl font-medium mb-8"></p>
+
+            <button onclick="restartQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 flex items-center mx-auto">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Refazer Simulado
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Application Logic and Data -->
+    <script>
+        // Quiz Data embutido para evitar problemas de CORS ao rodar arquivo local
+        const quizData = [
     {
       "id": 1,
-      "type": "multiple_choice",
       "text": "Um idoso de 78 anos com histórico de tabagismo de longa data (45 maços-ano) comparece ao ambulatório queixando-se de dispneia progressiva nos últimos anos. Ao exame físico do aparelho respiratório, observam-se: tórax globoso (em tonel), expansibilidade difusamente reduzida, som hiper-ressonante à percussão e murmúrio vesicular universalmente diminuído, com tempo expiratório prolongado. Qual alteração fisiopatológica melhor explica esses achados semiológicos?",
       "options": [
         { "text": "Substituição do ar alveolar por exsudato, aumentando a transmissão do som.", "is_correct": false },
@@ -16,7 +136,6 @@
     },
     {
       "id": 2,
-      "type": "multiple_choice",
       "text": "Uma paciente de 52 anos procura a emergência com queixa de febre alta (39°C), tosse produtiva (escarro amarelado) e dor torácica no hemitórax direito, tipo pontada, que piora com a inspiração profunda. Ao exame físico, apresenta FR = 26 irpm. No hemitórax direito, observa-se expansibilidade reduzida, frêmito toracovocal aumentado, macicez à percussão e, na ausculta, estertores crepitantes finos e som bronquial em áreas periféricas. Qual é a síndrome clínica e o mecanismo dos estertores finos encontrados?",
       "options": [
         { "text": "Síndrome de Derrame Pleural; atrito entre as pleuras inflamadas.", "is_correct": false },
@@ -28,7 +147,6 @@
     },
     {
       "id": 3,
-      "type": "multiple_choice",
       "text": "Durante o plantão noturno, dá entrada um paciente masculino de 60 anos, obeso, com queixa de dor retroesternal de forte intensidade (9/10), em aperto, que irradia para a face interna do braço esquerdo, acompanhada de sudorese fria e náuseas. A dor iniciou há cerca de 40 minutos, enquanto ele assistia televisão, e não aliviou com repouso. Qual a conduta inicial mais importante relacionada ao diagnóstico sindrômico e como se classifica essa dor segundo o modelo A-B-C-D?",
       "options": [
         { "text": "Administrar analgésicos; Dor tipo B (provavelmente anginosa).", "is_correct": false },
@@ -40,7 +158,6 @@
     },
     {
       "id": 4,
-      "type": "multiple_choice",
       "text": "Paciente de 45 anos, masculino, portador de insuficiência cardíaca crônica devido à miocardiopatia chagásica, comparece à consulta de rotina relatando piora do inchaço nas pernas e abdome, além de cansaço aos mínimos esforços. Ao exame físico do pescoço (paciente reclinado a 45°), nota-se pulsação venosa com turgência jugular que não colapsa na inspiração. Qual manobra propedêutica confirmaria a suspeita de falência ventricular direita associada e qual seria seu achado positivo?",
       "options": [
         { "text": "Sinal de Homans; dor na panturrilha à dorsiflexão.", "is_correct": false },
@@ -52,7 +169,6 @@
     },
     {
       "id": 5,
-      "type": "multiple_choice",
       "text": "Um idoso de 72 anos é trazido ao pronto-socorro após síncope. Acompanhante relata que o paciente tem reclamado de tonturas frequentes e episódios de dor no peito aos grandes esforços nos últimos 6 meses. Ao exame cardiovascular: pulso carotídeo de amplitude reduzida e ascensão lenta (pulso parvus et tardus); ausculta cardíaca demonstra ritmo regular em 2 tempos, com presença de sopro sistólico ejetivo (em diamante), mais audível no segundo espaço intercostal direito, com irradiação para a fúrcula esternal e carótidas. Qual a principal hipótese diagnóstica?",
       "options": [
         { "text": "Insuficiência Mitral.", "is_correct": false },
@@ -64,7 +180,6 @@
     },
     {
       "id": 6,
-      "type": "multiple_choice",
       "text": "Mulher de 28 anos, previamente hígida, usuária de anticoncepcional oral, procura a emergência devido a início súbito de dor torácica intensa, pontada, em base do hemitórax esquerdo, associada a dispneia importante (taquipneia de 32 irpm) e tosse seca. SatO2 = 88% em ar ambiente. O exame físico pulmonar é descrito como normal, sem alterações à inspeção, palpação, percussão ou ausculta. Diante da clínica e da semiologia respiratória \"negativa\" (ou normal), qual a suspeita diagnóstica mais provável e a causa de sua dispneia?",
       "options": [
         { "text": "Pneumotórax espontâneo; colapso alveolar limitando a expansão.", "is_correct": false },
@@ -76,7 +191,6 @@
     },
     {
       "id": 7,
-      "type": "multiple_choice",
       "text": "Em qual das seguintes condições patológicas espera-se auscultar o som respiratório anormal conhecido como \"ronco\", e qual é o seu mecanismo de formação?",
       "options": [
         { "text": "Pneumonia lobar; abertura de alvéolos com exsudato no final da inspiração.", "is_correct": false },
@@ -88,7 +202,6 @@
     },
     {
       "id": 8,
-      "type": "multiple_choice",
       "text": "Ao avaliar um paciente com suspeita de derrame pleural volumoso à direita, qual conjunto de achados no exame físico do hemitórax direito confirmaria essa suspeita diagnóstica?",
       "options": [
         { "text": "Expansibilidade diminuída, FTV aumentado, som maciço à percussão, ausculta com som bronquial.", "is_correct": false },
@@ -100,7 +213,6 @@
     },
     {
       "id": 9,
-      "type": "multiple_choice",
       "text": "Um agricultor de 65 anos, tabagista crônico, comparece à unidade básica de saúde com queixa de tosse crônica produtiva, perda de peso (6 kg em 2 meses) e episódios recentes de expectoração com raias de sangue (hemoptise). No exame físico das mãos, o médico solicita ao paciente que junte os dedos indicadores pelas unhas (Teste de Schamroth) e observa a perda da janela em losango habitual, com aumento do ângulo no leito ungueal. Este sinal (baqueteamento digital) sugere uma forte associação com qual patologia subjacente neste contexto clínico?",
       "options": [
         { "text": "Asma brônquica crônica.", "is_correct": false },
@@ -112,7 +224,6 @@
     },
     {
       "id": 10,
-      "type": "multiple_choice",
       "text": "Durante o exame físico cardiovascular de um paciente de 55 anos com histórico de infarto agudo do miocárdio prévio, ausculta-se um ruído protodiastólico de baixa frequência (B3) no foco mitral, utilizando a campânula do estetoscópio. O ictus cordis é difuso e desviado para a linha axilar anterior. Qual é o significado fisiopatológico desse achado auscultatório (B3) neste paciente?",
       "options": [
         { "text": "Representa a contração vigorosa do átrio contra um ventrículo pouco complacente (hipertrofiado).", "is_correct": false },
@@ -124,7 +235,6 @@
     },
     {
       "id": 11,
-      "type": "multiple_choice",
       "text": "Paciente de 40 anos, sexo feminino, procura atendimento relatando que suas mãos ficam pálidas, em seguida cianóticas e depois vermelhas quando expostas ao frio (ar condicionado ou pegar alimentos no freezer). Acompanha-se de dor local leve. Exame físico fora da crise é normal. Como é classificado o achado de coloração azulada durante a crise e qual o mecanismo fisiopatológico primário envolvido?",
       "options": [
         { "text": "Cianose central; hipoventilação alveolar causando insaturação arterial sistêmica.", "is_correct": false },
@@ -136,7 +246,6 @@
     },
     {
       "id": 12,
-      "type": "multiple_choice",
       "text": "Sobre as diferenças clínicas e semiológicas entre as Úlceras Arteriais e as Úlceras Venosas nos membros inferiores, assinale a afirmativa correta:",
       "options": [
         { "text": "As úlceras arteriais localizam-se classicamente na região perimaleolar medial, apresentam fundo limpo e granuloso e não são dolorosas.", "is_correct": false },
@@ -148,7 +257,6 @@
     },
     {
       "id": 13,
-      "type": "multiple_choice",
       "text": "Um idoso de 70 anos em pós-operatório (7º dia) de cirurgia oncológica abdominal apresenta queixa de dor e inchaço progressivo na perna e panturrilha esquerdas nas últimas 24 horas. O exame físico revela o membro inferior esquerdo com edema acentuado (+3/+4), assimétrico em relação ao direito, temperatura local levemente elevada e cianose leve. Há dor à palpação profunda da musculatura da panturrilha esquerda e dor à dorsiflexão súbita do pé esquerdo. Qual a hipótese diagnóstica principal e o nome dos sinais propedêuticos descritos, respectivamente?",
       "options": [
         { "text": "Insuficiência Arterial Aguda; Sinal de Olow e Sinal de Homan.", "is_correct": false },
@@ -160,7 +268,6 @@
     },
     {
       "id": 14,
-      "type": "multiple_choice",
       "text": "Paciente de 58 anos, sexo masculino, hipertenso, relata que ao caminhar cerca de 3 quarteirões inicia dor intensa e sensação de cãibra em panturrilha direita, que o obriga a parar a caminhada. Após 5 minutos de repouso, a dor cessa por completo e ele consegue voltar a andar a mesma distância até o sintoma retornar. O exame físico dos pulsos distais do membro afetado (pedioso e tibial posterior) revela intensidade francamente reduzida. Como se denomina esse sintoma clássico e qual o método não invasivo mais indicado na atenção primária para confirmar a doença base?",
       "options": [
         { "text": "Claudicação intermitente; Teste de esforço (ergometria).", "is_correct": false },
@@ -172,7 +279,6 @@
     },
     {
       "id": 15,
-      "type": "multiple_choice",
       "text": "Jovem de 22 anos, magro e alto, sem comorbidades, refere dor torácica súbita e aguda do lado esquerdo, seguida de falta de ar, enquanto estava em repouso. O exame físico demonstra que a traqueia parece centralizada, a expansibilidade do hemitórax esquerdo está discretamente diminuída, o murmúrio vesicular está ausente na porção superior esquerda e a percussão desta área revela som timpânico. O frêmito toracovocal no ápice esquerdo está abolido. Qual o diagnóstico mais provável para este paciente?",
       "options": [
         { "text": "Atelectasia de lobo superior esquerdo.", "is_correct": false },
@@ -184,7 +290,6 @@
     },
     {
       "id": 16,
-      "type": "multiple_choice",
       "text": "Um paciente em internação por insuficiência renal avançada apresenta padrão respiratório irregular. Observando-o, você nota que as incursões ventilatórias se iniciam superficiais e vão aumentando progressivamente em amplitude até atingir um pico (hiperpneia), para então decrescerem progressivamente até cessarem, ocorrendo um período de apneia que dura cerca de 20 segundos, após o qual o ciclo recomeça. Como é chamado este padrão respiratório e a que se deve?",
       "options": [
         { "text": "Respiração de Kussmaul; compensação de acidose metabólica grave.", "is_correct": false },
@@ -196,7 +301,6 @@
     },
     {
       "id": 17,
-      "type": "multiple_choice",
       "text": "Mulher de 40 anos, com história prévia de febre reumática na infância, procura o ambulatório por fadiga fácil e episódios de dispneia paroxística noturna. Ao exame cardiovascular, constata-se a presença de um ruído diastólico de baixa frequência, melhor audível no foco mitral com o paciente em decúbito lateral esquerdo, logo após a segunda bulha (B2), sem que seja uma Terceira Bulha, e sim o ruflar diastólico que segue um estalido de abertura. Há hiperfonese da Primeira Bulha (B1). Este quadro sugere estenose da valva mitral. Fisiologicamente, o que gera a hiperfonese de B1 na estenose mitral clássica e flexível?",
       "options": [
         { "text": "A válvula fecha a partir de uma posição amplamente aberta no início da sístole devido à alta pressão no átrio esquerdo, produzindo um choque valvar mais vigoroso.", "is_correct": true },
@@ -208,7 +312,6 @@
     },
     {
       "id": 18,
-      "type": "multiple_choice",
       "text": "Considere as diferenças semiológicas entre o som brônquico normal e o murmúrio vesicular normal. Qual afirmativa está incorreta em relação à ausculta pulmonar em indivíduos sadios?",
       "options": [
         { "text": "O som brônquico (traqueobrônquico) normal é de tonalidade aguda, com fases inspiratória e expiratória de mesma duração ou fase expiratória discretamente mais longa, e é auscultado classicamente sobre a projeção da traqueia.", "is_correct": false },
@@ -220,7 +323,6 @@
     },
     {
       "id": 19,
-      "type": "multiple_choice",
       "text": "Um idoso com história de doença renal e longa data de hipertensão arterial sistêmica, evolui com uremia grave e apresenta dor precordial ventilatório-dependente que alivia quando se inclina para a frente (prece maometana). A ausculta cardíaca revela um som em 'raspar de couro', áspero, que é auscultado nas sístoles e na diástole e não desaparece com a apneia do paciente. Este achado patognomônico corresponde a:",
       "options": [
         { "text": "Atrito pleural.", "is_correct": false },
@@ -232,7 +334,6 @@
     },
     {
       "id": 20,
-      "type": "multiple_choice",
       "text": "Durante o exame do aparelho respiratório de um lactente de 8 meses, internado por bronquiolite viral aguda grave com insuficiência respiratória, o médico nota evidente uso de musculatura acessória, retração do espaço intercostal e afundamento do esterno durante a inspiração, acompanhado por um som rude, audível sem o uso do estetoscópio à distância, originado por obstrução de vias aéreas superiores. Os sinais descritos referem-se a:",
       "options": [
         { "text": "Tiragem, batimento de asa de nariz e sibilos.", "is_correct": false },
@@ -244,7 +345,6 @@
     },
     {
       "id": 21,
-      "type": "multiple_choice",
       "text": "Ao testar a ausculta da voz falada no pulmão doente (broncopneumonia extensa em hemitórax direito basal), percebe-se que a voz do paciente soa com clareza muito maior que o normal, sendo possível distinguir claramente as palavras pronunciadas. Este fenômeno de ressonância vocal anormal é denominado:",
       "options": [
         { "text": "Broncofonia.", "is_correct": true },
@@ -256,7 +356,6 @@
     },
     {
       "id": 22,
-      "type": "multiple_choice",
       "text": "Paciente do sexo masculino, 62 anos, queixa-se de palpitações \"como se o coração estivesse descompassado ou parando por um segundo\", seguidas por um forte soco no peito. No ECG, identificam-se contrações ventriculares prematuras seguidas por pausas longas e um batimento subsequente mais intenso. No contexto da avaliação semiológica das palpitações, qual é o mecanismo causador da sensação do \"soco no peito\" que se segue à \"pausa\"?",
       "options": [
         { "text": "Contração vigorosa de um ventrículo que se encheu com grande volume diastólico final devido ao tempo prolongado da pausa compensatória.", "is_correct": true },
@@ -268,7 +367,6 @@
     },
     {
       "id": 23,
-      "type": "multiple_choice",
       "text": "Qual das seguintes manobras dinâmicas do exame físico geralmente aumenta a intensidade de quase todos os sopros originados das câmaras do lado DIREITO do coração?",
       "options": [
         { "text": "Apneia prolongada na expiração.", "is_correct": false },
@@ -280,7 +378,6 @@
     },
     {
       "id": 24,
-      "type": "multiple_choice",
       "text": "A dispneia avaliada através da escala mMRC (Modified Medical Research Council) quantifica o sintoma com base no impacto nas atividades. Qual queixa corresponde ao Grau 2 da referida escala?",
       "options": [
         { "text": "Falta de ar apenas durante exercício físico extenuante.", "is_correct": false },
@@ -292,7 +389,6 @@
     },
     {
       "id": 25,
-      "type": "multiple_choice",
       "text": "No exame da jugular, o traçado fisiológico do pulso venoso central revela duas ondas positivas principais (onda 'a' e onda 'v') seguidas de descensos. Uma onda 'v' proeminente e gigante (às vezes obliterando o pulso venoso normal, tornando-se uma onda sistólica maciça) é indicativa clássica de qual patologia?",
       "options": [
         { "text": "Estenose Tricúspide.", "is_correct": false },
@@ -304,7 +400,6 @@
     },
     {
       "id": 26,
-      "type": "multiple_choice",
       "text": "Mulher de 55 anos queixa-se de que a dispneia a desperta no meio da noite, precisando sentar na beirada da cama com as pernas pendentes ou caminhar para a janela para buscar ar. Ela sente alívio gradativo em 15 a 30 minutos. Este relato semiológico detalhado descreve o sintoma de:",
       "options": [
         { "text": "Dispneia Paroxística Noturna (DPN), sintoma maior sugestivo de insuficiência ventricular esquerda.", "is_correct": true },
@@ -316,7 +411,6 @@
     },
     {
       "id": 27,
-      "type": "multiple_choice",
       "text": "Analise as afirmações sobre a avaliação clínica dos linfonodos periféricos em relação a suspeitas neoplásicas:\nI. Linfonodos associados a infecção aguda são, frequentemente, de consistência fibroelástica, móveis e dolorosos à palpação.\nII. Linfonodos metastáticos são tipicamente duros (pétreos), indolores, fixos aos planos profundos ou coalescentes.\nIII. O Linfonodo de Virchow, localizado na região supraclavicular direita, é classicamente associado a neoplasias gástricas.\nEstão corretas as afirmativas:",
       "options": [
         { "text": "I e II apenas.", "is_correct": true },
@@ -328,7 +422,6 @@
     },
     {
       "id": 28,
-      "type": "multiple_choice",
       "text": "Um agricultor idoso nota piora da coloração e das varizes em ambas as pernas, com o aparecimento há alguns meses de uma mancha acastanhada que escurece o tornozelo inferior. A pele nesta região está espessada e dura. Como se chama esta pigmentação e qual a fisiopatologia por trás da sua formação?",
       "options": [
         { "text": "Púrpura isquêmica; morte de microvasos arteriais gerando necrose pontual da epiderme.", "is_correct": false },
@@ -340,7 +433,6 @@
     },
     {
       "id": 29,
-      "type": "multiple_choice",
       "text": "Ao realizar a ausculta torácica de um paciente com derrame pleural volumoso no hemitórax esquerdo, o estudante ouve, na transição superior (limite superior) do derrame pleural (onde há pulmão comprimido adjacente), um som peculiar e distorcido quando pede ao paciente que fale a letra \"i\". A letra que era para soar como \"i\" soa anasalada e estridente, como a vogal \"a\" ou um balido de cabra. Qual é o nome deste achado semiológico?",
       "options": [
         { "text": "Broncofonia.", "is_correct": false },
@@ -352,7 +444,6 @@
     },
     {
       "id": 30,
-      "type": "multiple_choice",
       "text": "A determinação do Perfil Hemodinâmico (classificação ABCD) da insuficiência cardíaca à beira leito (de Stevenson) é vital. Como você classificaria um paciente em internação por insuficiência cardíaca que apresenta os seguintes achados vitais e de exame: Pressão de pulso estreita, estado mental obnubilado, extremidades muito frias, oligúria, pulso de fina amplitude. Não há estertores pulmonares, nem turgência jugular ou edema (sem sinais de congestão).",
       "options": [
         { "text": "Perfil A: Quente e Seco (compensado).", "is_correct": false },
@@ -364,7 +455,6 @@
     },
     {
       "id": 31,
-      "type": "multiple_choice",
       "text": "Ao analisar a queixa de tosse, o médico precisa diferenciar sua origem semiológica pela expectoração (vômica). Assinale a afirmativa correta que define precisamente o termo \"Vômica\":",
       "options": [
         { "text": "Tosse acompanhada de vômitos gástricos de restos alimentares não digeridos devido a refluxo severo.", "is_correct": false },
@@ -376,7 +466,6 @@
     },
     {
       "id": 32,
-      "type": "multiple_choice",
       "text": "No contexto da semiologia pulmonar, o sinal clássico indicativo de consolidação parenquimatosa lobar densa encontrado à ausculta, definido como ouvir nítida e distintamente as sílabas sussurradas pelo paciente, quando as mesmas não seriam audíveis no pulmão normal, é a:",
       "options": [
         { "text": "Egofonia.", "is_correct": false },
@@ -388,7 +477,6 @@
     },
     {
       "id": 33,
-      "type": "multiple_choice",
       "text": "Paciente de 42 anos, sexo feminino, ex-tabagista e hipertensa controlada, queixa-se de uma dor persistente que tem caráter de queimação insidiosa localizada ao longo de um trajeto no lado direito do hemitórax posterior para o anterior que obedece à distribuição do 5º arco costal. O toque sutil da roupa agrava significativamente a dor. Sem febre. Radiografia de tórax e ECG normais. Com base nessas características qualitativas da dor, a sua origem principal deve ser suspeitada como:",
       "options": [
         { "text": "Pleural (pleurítica agudizada).", "is_correct": false },
@@ -400,7 +488,6 @@
     },
     {
       "id": 34,
-      "type": "multiple_choice",
       "text": "O exame da palpação da tireoide é um elemento secundário (porém às vezes mandatório) em pacientes investigados para palpitações e dispneia para descartar hipertireoidismo. Em casos de doença endócrina avançada, como no Bócio Hipertireoideo com elevada atividade metabólica, é possível encontrar achados cardiovasculares indiretos clássicos na semiologia do pulso arterial. Espera-se encontrar:",
       "options": [
         { "text": "Pulso arterial filiforme, pressão convergente e bradicardia severa.", "is_correct": false },
@@ -412,7 +499,6 @@
     },
     {
       "id": 35,
-      "type": "multiple_choice",
       "text": "Qual o quadro clínico típico secundário a compressão dos ramos cervicais simpáticos por um tumor de Pancoast (Carcinoma Broncogênico apical)?",
       "options": [
         { "text": "Síndrome de Lemos Torres.", "is_correct": false },
@@ -424,7 +510,6 @@
     },
     {
       "id": 36,
-      "type": "multiple_choice",
       "text": "Na semiologia venosa (e pesquisa de sinais de insuficiência cardíaca direita), caso seja observada uma grave onda 'a' em canhão e pulsações maciças na veia jugular que não coincidem estritamente com o pulso arterial e o pulso cardíaco radial de modo rítmico. Em que contexto as \"Ondas A em canhão\" clássicas no pescoço são produzidas fisiopatologicamente?",
       "options": [
         { "text": "Quando a sístole atrial vigorosa ocorre de forma síncrona com o enchimento ventricular rápido sem barreira.", "is_correct": false },
@@ -436,7 +521,6 @@
     },
     {
       "id": 37,
-      "type": "multiple_choice",
       "text": "Correlacione o sopro valvar clássico com o evento do ciclo cardíaco (sístole ou diástole) e sua etiologia, assinalando a alternativa correta:",
       "options": [
         { "text": "Insuficiência Mitral = Sopro diastólico (incompetência para reter sangue atrial após o pulso).", "is_correct": false },
@@ -448,7 +532,6 @@
     },
     {
       "id": 38,
-      "type": "multiple_choice",
       "text": "Paciente no quinto dia pós-operatório (PO) de fratura exposta de fêmur e repouso estrito (acamada). Desperta na manhã relatando tosse irritativa com laivos vermelhos (hemoptoicos) no papel, associada a episódios rápidos de pontada respiratória direita e moderada dispneia. O raio-X de tórax inicial é normal e a panturrilha esquerda apresenta um edema compressível assimétrico em relação à direita sem dor óbvia à dorsiflexão (Homans negativo). Destas informações integradas, qual a mais provável cadeia fisiopatológica dos eventos, confirmando o cenário primário subjacente?",
       "options": [
         { "text": "Bronquite aguda nosocomial evoluindo para atelectasia restritiva e consolidação exsudativa incipiente.", "is_correct": false },
@@ -460,7 +543,6 @@
     },
     {
       "id": 39,
-      "type": "multiple_choice",
       "text": "Os sinais periféricos de estigmas crônicos sistêmicos auxiliam os achados centrais. Avalie qual destas associações clássicas patológicas entre o exame físico ectoscópico e as síndromes cardio-respiratórias é apropriada e frequentemente observada:",
       "options": [
         { "text": "Cianose de extremidades e do leito ungueal sem cianose em lábios centrais, e sem alteração à hiperemia reativa local por frio = Insuficiência cardiorrespiratória global congênita (Cianose primária central).", "is_correct": false },
@@ -472,7 +554,6 @@
     },
     {
       "id": 40,
-      "type": "multiple_choice",
       "text": "O mecanismo clássico do \"Desdobramento Fisiológico da Segunda Bulha Cardíaca (B2)\" decorre da alternância nas influências das pressões torácicas entre o momento expiratório e inspiratório normais. Como deve ser descrito e auscultado preferencialmente esse achado?",
       "options": [
         { "text": "Sinal único na ausculta apical (foco mitral). Manifesta-se audível na expiração porque o aumento do sangue intratorácico atrasa o componente aórtico da bulha em relação ao pulmonar.", "is_correct": false },
@@ -482,6 +563,156 @@
       ],
       "justification": "O desdobramento da B2 durante o ciclo inspiratório basal em sujeitos normais acontece porque a expansão da cavidade restritiva aumenta o espaço capilar pulmonar, mas mais especificamente, recruta sangue por sucção intra-abdomino-torácica das grandes veias e aumenta intensamente o retorno do leito direito para o ventrículo. Este lado do coração terá que ejetar esse sangue extra, demorando mais até que a válvula pulmonar termine fechando; gerando o típico compasso \"Tla\"."
     }
-  ]
-}
-```eof
+  ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOptionIndex = null;
+
+        // Elements
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionCounter = document.getElementById('question-counter');
+        const scoreDisplay = document.getElementById('score-display');
+        const progressBar = document.getElementById('progress-bar');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackContainer = document.getElementById('feedback-container');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackText = document.getElementById('feedback-text');
+        const btnConfirm = document.getElementById('btn-confirm');
+        const btnNext = document.getElementById('btn-next');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const performanceMsg = document.getElementById('performance-msg');
+        const resultIcon = document.getElementById('result-icon');
+
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            // Reset UI
+            selectedOptionIndex = null;
+            btnConfirm.disabled = true;
+            btnConfirm.classList.remove('hidden');
+            btnNext.classList.add('hidden');
+            feedbackContainer.classList.add('hidden');
+            optionsContainer.innerHTML = '';
+
+            const question = quizData[currentQuestionIndex];
+            
+            // Update Headers
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1} de ${quizData.length}`;
+            scoreDisplay.innerText = `Acertos: ${score}`;
+            progressBar.style.width = `${((currentQuestionIndex + 1) / quizData.length) * 100}%`;
+            questionText.innerText = `${currentQuestionIndex + 1}. ${question.text}`;
+
+            // Create Options
+            question.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left p-4 rounded-lg border-2 border-gray-200 bg-white hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3';
+                btn.innerHTML = `<span class="font-bold mr-2 text-gray-500">${String.fromCharCode(65 + index)}.</span> ${option.text}`;
+                btn.onclick = () => selectOption(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectOption(index, buttonElement) {
+            selectedOptionIndex = index;
+            
+            // Remove selection class from all
+            const buttons = optionsContainer.querySelectorAll('button');
+            buttons.forEach(btn => btn.classList.remove('selected', 'border-blue-500', 'bg-blue-50'));
+            
+            // Add to current
+            buttonElement.classList.add('selected', 'border-blue-500', 'bg-blue-50');
+            
+            btnConfirm.disabled = false;
+        }
+
+        function confirmAnswer() {
+            const question = quizData[currentQuestionIndex];
+            const isCorrect = question.options[selectedOptionIndex].is_correct;
+            const buttons = optionsContainer.querySelectorAll('button');
+
+            // Disable all buttons to prevent changing answer
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                btn.classList.remove('hover:border-blue-300'); // remove hover
+                
+                if (question.options[idx].is_correct) {
+                    btn.classList.add('correct');
+                    btn.classList.remove('border-gray-200', 'selected');
+                } else if (idx === selectedOptionIndex && !isCorrect) {
+                    btn.classList.add('incorrect');
+                    btn.classList.remove('selected', 'border-blue-500', 'bg-blue-50');
+                }
+            });
+
+            if (isCorrect) {
+                score++;
+                feedbackTitle.innerText = "Resposta Correta! ✅";
+                feedbackTitle.className = "font-bold text-lg mb-2 text-green-700";
+                feedbackContainer.className = "mb-8 p-5 rounded-lg border-l-4 border-green-500 bg-green-50";
+            } else {
+                feedbackTitle.innerText = "Resposta Incorreta ❌";
+                feedbackTitle.className = "font-bold text-lg mb-2 text-red-700";
+                feedbackContainer.className = "mb-8 p-5 rounded-lg border-l-4 border-red-500 bg-red-50";
+            }
+
+            scoreDisplay.innerText = `Acertos: ${score}`;
+            feedbackText.innerText = question.justification;
+            feedbackContainer.classList.remove('hidden');
+
+            btnConfirm.classList.add('hidden');
+            btnNext.classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            
+            finalScoreDisplay.innerText = score;
+            
+            const percentage = (score / quizData.length) * 100;
+            
+            if (percentage >= 80) {
+                performanceMsg.innerText = "Excelente desempenho! Você demonstrou forte domínio em clínica e propedêutica.";
+                performanceMsg.className = "text-xl font-medium mb-8 text-green-600";
+                resultIcon.className = "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-100 text-green-600";
+                resultIcon.innerHTML = `<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>`;
+            } else if (percentage >= 60) {
+                performanceMsg.innerText = "Bom trabalho! Uma revisão nos pontos errados garantirá sua aprovação.";
+                performanceMsg.className = "text-xl font-medium mb-8 text-yellow-600";
+                resultIcon.className = "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-yellow-100 text-yellow-600";
+                resultIcon.innerHTML = `<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            } else {
+                performanceMsg.innerText = "Recomendamos revisar os resumos de propedêutica e refazer o simulado.";
+                performanceMsg.className = "text-xl font-medium mb-8 text-red-600";
+                resultIcon.className = "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-red-100 text-red-600";
+                resultIcon.innerHTML = `<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+            }
+        }
+
+        function restartQuiz() {
+            score = 0;
+            currentQuestionIndex = 0;
+            resultScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            loadQuestion();
+        }
+    </script>
+</body>
+</html>
