@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado - Prova Final Prática Médica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateX(5px);
+            background-color: #f3f4f6;
+        }
+        .option-btn.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .option-btn.correct {
+            border-color: #10b981;
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .option-btn.incorrect {
+            border-color: #ef4444;
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800 selection:bg-blue-200">
+
+    <div class="max-w-4xl mx-auto pt-10 pb-20 px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight sm:text-4xl">Simulado Final PAPM III - P1 e P2</h1>
+            <p class="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">40 questões baseadas em casos clínicos e semiologia avançada (Respiratória e Cardiovascular).</p>
+        </header>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="bg-white shadow-xl rounded-2xl p-8 text-center border border-gray-100">
+            <div class="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold mb-4">Instruções</h2>
+            <p class="text-gray-600 mb-8 max-w-lg mx-auto">Leia atentamente cada caso clínico. Após selecionar a resposta e confirmar, você receberá o gabarito e a justificativa detalhada com base na propedêutica médica.</p>
+            <button onclick="startQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                Iniciar Simulado
+            </button>
+        </div>
+
+        <!-- Quiz Screen (Hidden initially) -->
+        <div id="quiz-screen" class="hidden bg-white shadow-xl rounded-2xl p-6 sm:p-10 border border-gray-100 relative">
+            
+            <div class="flex justify-between items-center mb-6">
+                <span id="question-counter" class="text-sm font-semibold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">Questão 1 de 40</span>
+                <span id="score-display" class="text-sm font-medium text-gray-500">Acertos: 0</span>
+            </div>
+
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 2.5%"></div>
+            </div>
+
+            <h3 id="question-text" class="text-xl sm:text-2xl font-semibold text-gray-900 mb-6 leading-relaxed">
+                Texto da questão vai aqui...
+            </h3>
+
+            <div id="options-container" class="space-y-4 mb-8">
+                <!-- Options injected via JS -->
+            </div>
+
+            <!-- Feedback Area (Justification) -->
+            <div id="feedback-container" class="hidden mb-8 p-5 rounded-lg border-l-4">
+                <h4 id="feedback-title" class="font-bold text-lg mb-2">Gabarito</h4>
+                <p id="feedback-text" class="text-gray-700 leading-relaxed"></p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end border-t pt-6 mt-6">
+                <button id="btn-confirm" onclick="confirmAnswer()" disabled class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3 px-8 rounded-lg shadow transition-colors">
+                    Confirmar Resposta
+                </button>
+                <button id="btn-next" onclick="nextQuestion()" class="hidden bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow transition-colors flex items-center">
+                    Próxima Questão
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Screen (Hidden initially) -->
+        <div id="result-screen" class="hidden bg-white shadow-xl rounded-2xl p-8 text-center border border-gray-100">
+            <div id="result-icon" class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 text-white">
+                <!-- Icon injected via JS -->
+            </div>
+            <h2 class="text-3xl font-bold mb-2">Simulado Concluído!</h2>
+            <p class="text-gray-600 mb-6 text-lg">Aqui está o seu desempenho final:</p>
+            
+            <div class="flex justify-center items-center space-x-8 mb-8">
+                <div class="text-center">
+                    <p class="text-5xl font-extrabold text-blue-600" id="final-score">0</p>
+                    <p class="text-sm text-gray-500 font-medium uppercase mt-1">Acertos</p>
+                </div>
+                <div class="w-px h-16 bg-gray-200"></div>
+                <div class="text-center">
+                    <p class="text-5xl font-extrabold text-gray-900">40</p>
+                    <p class="text-sm text-gray-500 font-medium uppercase mt-1">Total</p>
+                </div>
+            </div>
+
+            <p id="performance-msg" class="text-xl font-medium mb-8"></p>
+
+            <button onclick="restartQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 flex items-center mx-auto">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Refazer Simulado
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Application Logic and Data -->
+    <script>
+        const quizData = [
+            {
+                "id": 1,
+                "text": "Paciente masculino, 65 anos, tabagista (40 maços/ano), queixa-se de dispneia progressiva aos esforços e tosse com expectoração matinal há mais de 3 anos. No exame físico: tórax em tonel, uso de musculatura acessória, som hiper-ressonante à percussão difusamente e murmúrio vesicular reduzido, com tempo expiratório prolongado e sibilos expiratórios. Baseado na classificação de Dorhost e Filley e nos achados clínicos, qual a descrição fisiopatológica e o perfil clássico desse paciente?",
+                "options": [
+                    { "text": "Predomínio de bronquite crônica (Blue Bloater); a dispneia é causada por diminuição da difusão de oxigênio na membrana alvéolo-capilar.", "is_correct": false },
+                    { "text": "Predomínio de enfisema pulmonar (Pink Puffer); a perda da elasticidade pulmonar gera hiperinsuflação e aprisionamento aéreo, levando ao tórax em tonel e expiração prolongada.", "is_correct": true },
+                    { "text": "Sindrome de consolidação; preenchimento alveolar por líquido causa a hiper-ressonância e o aumento do tempo expiratório.", "is_correct": false },
+                    { "text": "Doença das pequenas vias aéreas (Blue Bloater); a destruição permanente dos alvéolos distais aos bronquíolos terminais causa cianose intensa desde o início do quadro.", "is_correct": false }
+                ],
+                "justification": "O paciente apresenta o perfil clássico de Enfisematoso (Pink Puffer) ou soprador rosado: magro (implícito pelo esforço contínuo), dispneia intensa, murmúrio reduzido, hiperinsuflação (tórax em tonel e hipersonoridade). O enfisema causa perda de elasticidade e retração elástica, levando ao colabamento precoce das vias aéreas na expiração e aprisionamento aéreo (hiperinsuflação)."
+            },
+            {
+                "id": 2,
+                "text": "Durante o exame do aparelho respiratório, a percepção tátil da vibração produzida pelas cordas vocais e transmitida pela árvore traqueobrônquica é o Frêmito Toracovocal (FTV). Em qual das situações abaixo o FTV se apresenta caracteristicamente AUMENTADO e qual a sua justificativa fisiopatológica?",
+                "options": [
+                    { "text": "Pneumotórax; pois o ar no espaço pleural atua como um amplificador das ondas sonoras vocais.", "is_correct": false },
+                    { "text": "Atelectasia obstrutiva; pois o colapso do parênquima aproxima os brônquios da parede torácica, facilitando a condução.", "is_correct": false },
+                    { "text": "Derrame Pleural; pois o líquido no espaço pleural transmite melhor o som do que o ar.", "is_correct": false },
+                    { "text": "Pneumonia Lobar (Síndrome de Consolidação); pois o tecido pulmonar densificado (hepatização) por exsudato transmite as vibrações sonoras com mais eficiência do que o pulmão normalmente aerado.", "is_correct": true }
+                ],
+                "justification": "O Frêmito Toracovocal (FTV) aumenta em síndromes de consolidação (como pneumonia e infarto pulmonar) porque o tecido pulmonar torna-se sólido (hepatização) devido à substituição do ar por células ou líquido inflamatório. Meios sólidos ou líquidos contínuos transmitem as ondas sonoras e táteis melhor do que o parênquima pulmonar normal esponjoso e cheio de ar. No derrame pleural, pneumotórax e atelectasia, o FTV é diminuído ou abolido."
+            },
+            {
+                "id": 3,
+                "text": "Mulher de 42 anos, sem comorbidades prévias, dá entrada na emergência com dor torácica súbita à direita, tipo pontada, que piora intensamente ao inspirar fundo ou tossir (dor pleurítica), associada a tosse seca e taquipneia. Relata que fez uma longa viagem de avião (12 horas) há dois dias. O exame físico respiratório e cardiovascular é descrito como praticamente normal, exceto por taquicardia (110 bpm) e taquipneia (24 irpm). O achado de dor torácica pleurítica, início súbito e exame pulmonar \"pobre\" (ou normal) num paciente com fator de risco para estase venosa sugere fortemente qual diagnóstico?",
+                "options": [
+                    { "text": "Pneumotórax espontâneo primário.", "is_correct": false },
+                    { "text": "Tromboembolismo Pulmonar (TEP) com infarto pulmonar periférico.", "is_correct": true },
+                    { "text": "Derrame pleural parapneumônico (exsudato).", "is_correct": false },
+                    { "text": "Pericardite aguda viral.", "is_correct": false }
+                ],
+                "justification": "A tríade de viagem prolongada (imobilidade/estase -> tríade de Virchow), dor pleurítica súbita, tosse e dispneia (taquipneia/taquicardia), com um exame físico pulmonar inespecífico ou normal, é o quadro clínico clássico e altamente suspeito de Tromboembolismo Pulmonar (TEP). A dor pleurítica ocorre quando o êmbolo causa isquemia/infarto em uma área periférica do pulmão, inflamando a pleura visceral adjacente."
+            },
+            {
+                "id": 4,
+                "text": "Paciente de 55 anos queixa-se de claudicação intermitente na panturrilha esquerda ao caminhar cerca de 200 metros, que alivia rapidamente com o repouso. Ao examinar os membros inferiores, o médico nota pele fina, ausência de pelos e palidez no membro esquerdo à elevação. Qual é a causa primária desse sintoma e qual alteração de pulso você espera encontrar no exame físico?",
+                "options": [
+                    { "text": "Insuficiência Venosa Crônica; pulsos pediosos e tibiais posteriores amplos e fortes (hiperdinâmicos).", "is_correct": false },
+                    { "text": "Doença Arterial Obstrutiva Periférica (DAOP); pulsos pediosos e tibiais posteriores diminuídos ou ausentes no membro esquerdo.", "is_correct": true },
+                    { "text": "Trombose Venosa Profunda (TVP) antiga; assimetria de pulsos com pulso poplíteo esquerdo em martelo d'água.", "is_correct": false },
+                    { "text": "Neuropatia diabética; pulsos pediosos normais, mas com perda de sensibilidade protetora.", "is_correct": false }
+                ],
+                "justification": "A claudicação intermitente (dor que surge com o esforço e cessa com o repouso) é o sintoma patognomônico da isquemia crônica por Doença Arterial Obstrutiva Periférica (DAOP). O esforço aumenta a demanda de O2 muscular, que não é suprida pela artéria estenosada, gerando isquemia e acúmulo de ácido lático (dor). Os achados clássicos incluem pele pálida/fria, perda de fâneros (pelos) e diminuição ou abolição dos pulsos arteriais a jusante da obstrução (pedioso, tibial posterior)."
+            },
+            {
+                "id": 5,
+                "text": "Durante a ausculta cardíaca de um jovem de 20 anos assintomático e hígido, o médico detecta no foco pulmonar um desdobramento da Segunda Bulha (B2). Ao solicitar que o paciente prenda a respiração (apneia), o desdobramento desaparece, e ouve-se apenas um som único (TUM-TA). Ao voltar a respirar, na inspiração o som divide-se em TUM-TLA. Como é denominado esse fenômeno e qual sua explicação fisiológica?",
+                "options": [
+                    { "text": "Desdobramento Paradoxal de B2; fechamento retardado da valva aórtica devido a estenose aórtica severa.", "is_correct": false },
+                    { "text": "Desdobramento Fixo de B2; comunicação interatrial permitindo fluxo contínuo entre os átrios.", "is_correct": false },
+                    { "text": "Desdobramento Fisiológico de B2; o aumento da pressão negativa intratorácica na inspiração aumenta o retorno venoso para o VD, prolongando sua ejeção e retardando o fechamento da valva pulmonar em relação à aórtica.", "is_correct": true },
+                    { "text": "Terceira Bulha (B3) fisiológica; o som TLA representa a abertura abrupta da valva pulmonar sob alta pressão.", "is_correct": false }
+                ],
+                "justification": "Este é o Desdobramento Fisiológico da B2. Durante a inspiração profunda, a pressão intratorácica torna-se mais negativa, o que atrai mais sangue para o coração direito (aumenta o retorno venoso para o AD e VD). O ventrículo direito tem então um volume um pouco maior para ejetar do que o esquerdo, o que faz com que sua sístole dure alguns milissegundos a mais. Consequentemente, a valva pulmonar fecha-se levemente após a valva aórtica (A2 precede P2), gerando o desdobramento audível."
+            },
+            {
+                "id": 6,
+                "text": "Paciente de 60 anos com história de cirrose hepática severa e ascite volumosa evolui com dispneia progressiva. A radiografia de tórax evidencia um grande acúmulo de líquido na cavidade pleural direita (Sinal do menisco). Realizada a toracocentese diagnóstica, a análise do líquido revela: Proteína do líquido pleural / Proteína do soro = 0,3; LDH do líquido / LDH do soro = 0,4. Baseado nos critérios de Light, como se classifica este derrame pleural e qual é o seu mecanismo de formação?",
+                "options": [
+                    { "text": "Exsudato; formado pelo aumento da permeabilidade capilar secundário a um processo inflamatório ou neoplásico na pleura.", "is_correct": false },
+                    { "text": "Transudato; formado pela diminuição da pressão oncótica do plasma (hipoalbuminemia) associada ou não à passagem de ascite pelo diafragma.", "is_correct": true },
+                    { "text": "Exsudato; formado pelo bloqueio da drenagem linfática pleural devido a micrometástases.", "is_correct": false },
+                    { "text": "Transudato; formado por inflamação e lise celular maciça no espaço pleural, liberando grande quantidade de LDH.", "is_correct": false }
+                ],
+                "justification": "Os Critérios de Light definem um exsudato se APENAS UM dos seguintes for presente: 1) Relação Proteína líquido/soro > 0,5; 2) Relação LDH líquido/soro > 0,6; 3) LDH do líquido > 2/3 do limite superior do soro. Neste caso, ambas as relações estão baixas (0,3 e 0,4), caracterizando um Transudato. Transudatos são causados por desequilíbrios sistêmicos nas forças de Starling (aumento da pressão hidrostática como na ICC, ou redução da pressão oncótica como na hipoalbuminemia da cirrose), sem doença direta na pleura."
+            },
+            {
+                "id": 7,
+                "text": "Um idoso de 80 anos relata que, há 2 semanas, começou a acordar no meio da noite com sensação de sufocamento (falta de ar intensa), precisando sentar-se à beira da cama por 20 minutos para obter alívio. Também refere necessidade de dormir com três travesseiros. No exame físico cardíaco, observa-se ritmo regular, presença de Quarta Bulha (B4) e Quinto espaço intercostal E com ictus desviado. Qual é o nome deste tipo específico de dispneia e o que a presença da B4 sugere fisiopatologicamente?",
+                "options": [
+                    { "text": "Ortopneia pura; a B4 sugere dilatação severa do ventrículo esquerdo (ICFER).", "is_correct": false },
+                    { "text": "Dispneia Paroxística Noturna (DPN); a B4 é gerada pela contração atrial contra um ventrículo hipertrofiado e rígido (pouco complacente), clássico da insuficiência cardíaca com fração de ejeção preservada (ICFEP) ou sobrecarga de pressão.", "is_correct": true },
+                    { "text": "Asma noturna; a B4 indica um estado hiperdinâmico secundário à hipóxia tecidual crônica.", "is_correct": false },
+                    { "text": "Bendopneia; a B4 traduz um retardo na condução atrioventricular (BAV de 1º grau).", "is_correct": false }
+                ],
+                "justification": "A queixa de acordar no meio da noite com dispneia que alivia após minutos sentado é a Dispneia Paroxística Noturna (DPN), sintoma cardeal de IC esquerda. A necessidade de dormir com mais travesseiros é a Ortopneia. A B4 ocorre no fim da diástole (fase de contração atrial) e indica que o átrio está batendo contra uma câmara ventricular de parede espessa e rígida (pouco complacente), tipicamente hipertrofiada devido a HAS longa ou estenose aórtica (causas de IC diastólica / ICFEP)."
+            },
+            {
+                "id": 8,
+                "text": "Durante a inspeção dinâmica e palpação do tórax de um paciente de 35 anos internado na UTI após trauma torácico contuso, o médico percebe que, durante a inspiração, uma grande área da parede torácica direita deprime-se (afunda) em direção ao interior do tórax, e na expiração, essa mesma área se projeta para fora. O paciente apresenta intensa dor e dispneia (taquipneia de 38 irpm). Este padrão respiratório patológico é indicativo de:",
+                "options": [
+                    { "text": "Respiração de Kussmaul, compensando acidose láctica.", "is_correct": false },
+                    { "text": "Tórax em tonel com respiração de Biot.", "is_correct": false },
+                    { "text": "Respiração Paradoxal (Tórax Instável/Volet costal), decorrente de fraturas em múltiplos arcos costais consecutivos.", "is_correct": true },
+                    { "text": "Respiração de Cheyne-Stokes por lesão cerebral isquêmica.", "is_correct": false }
+                ],
+                "justification": "O movimento oposto à mecânica ventilatória normal (afundar na inspiração e protruir na expiração) denomina-se Respiração Paradoxal. No contexto de trauma, isso é o sinal clássico do \"Tórax Instável\" (ou volet costal), que ocorre quando múltiplas costelas adjacentes são fraturadas em mais de um ponto, criando um segmento flutuante da parede torácica que responde passivamente às mudanças de pressão intratorácica (negativa na inspiração, puxando para dentro)."
+            },
+            {
+                "id": 9,
+                "text": "Mulher de 25 anos com antecedente de lúpus eritematoso sistêmico apresenta dor torácica que piora ao deitar-se em decúbito dorsal e ao inspirar fundo, melhorando marcadamente quando a paciente se inclina para a frente (posição de prece maometana). À ausculta cardíaca, percebe-se um ruído sistólico e diastólico áspero, semelhante ao atrito de duas peças de couro, audível principalmente na borda esternal esquerda. Este som não desaparece quando a paciente prende a respiração. Qual é o diagnóstico e o achado semiológico característico?",
+                "options": [
+                    { "text": "Pleurite lúpica; Atrito pleural.", "is_correct": false },
+                    { "text": "Pericardite aguda; Atrito pericárdico.", "is_correct": true },
+                    { "text": "Estenose aórtica bicuspídea; Sopro sistólico ejetivo.", "is_correct": false },
+                    { "text": "Insuficiência Mitral aguda; Sopro holossistólico.", "is_correct": false }
+                ],
+                "justification": "A dor torácica que piora ao deitar (decúbito dorsal) e melhora ao inclinar-se para a frente (prece maometana) é clássica da Pericardite Aguda. O ruído áspero de raspar de couro, audível na sístole e diástole, é o Atrito Pericárdico. O fato de o ruído NÃO desaparecer com a apneia (prender a respiração) é o teste clínico fundamental que o diferencia do atrito pleural (que cessa quando a respiração para)."
+            },
+            {
+                "id": 10,
+                "text": "Analise as síndromes pleuropulmonares e relacione os achados do exame físico. Um paciente apresenta no exame do hemitórax esquerdo: Retração inspiratória intercostal (tiragem), desvio da traqueia para o LADO ESQUERDO, expansibilidade esquerda abolida, frêmito toracovocal (FTV) abolido à esquerda, macicez à percussão e murmúrio vesicular ausente. Não há febre. O diagnóstico mais provável é:",
+                "options": [
+                    { "text": "Pneumotórax Hipertensivo Esquerdo.", "is_correct": false },
+                    { "text": "Derrame Pleural Maciço Esquerdo.", "is_correct": false },
+                    { "text": "Atelectasia Obstrutiva Total do Pulmão Esquerdo.", "is_correct": true },
+                    { "text": "Pneumonia Lobar Esquerda.", "is_correct": false }
+                ],
+                "justification": "A chave aqui é o DESVIO DA TRAQUEIA e do mediastino PARA O MESMO LADO da lesão (Lado Esquerdo). A Atelectasia é um colapso pulmonar com perda de volume; a pressão negativa intratorácica \"puxa\" as estruturas do mediastino (coração, traqueia) para preencher o espaço vazio deixado pelo pulmão murcho. O pneumotórax hipertensivo e o grande derrame pleural têm efeito de massa e EMPURRAM a traqueia para o lado oposto (direito, neste caso). A consolidação (pneumonia) não desvia a traqueia e cursa com FTV aumentado."
+            },
+            {
+                "id": 11,
+                "text": "Na semiologia das bulhas cardíacas patológicas, a Terceira Bulha (B3) e a Quarta Bulha (B4) formam os chamados 'ritmos de galope' quando acompanhadas de taquicardia. Sobre a B3, assinale a afirmativa fisiopatológica e clínica CORRETA:",
+                "options": [
+                    { "text": "A B3 é um ruído de alta frequência, mais bem audível com o diafragma do estetoscópio, gerado pela vibração das valvas aórtica e pulmonar.", "is_correct": false },
+                    { "text": "A B3 ocorre no final da diástole (pré-sistólica) e sinaliza a contração vigorosa dos átrios.", "is_correct": false },
+                    { "text": "A B3 ocorre na fase de enchimento ventricular rápido (protodiastólica) e é gerada pelo choque do sangue contra a parede de um ventrículo dilatado, com sobrecarga de volume, sendo um forte indicativo de disfunção sistólica (ICFER) em adultos.", "is_correct": true },
+                    { "text": "A B3 é sempre patológica em qualquer faixa etária, indicando iminência de fibrilação atrial.", "is_correct": false }
+                ],
+                "justification": "A Terceira Bulha (B3) ocorre logo após a B2, na fase de enchimento rápido ventricular. O sangue atinge a parede de um ventrículo já distendido ou dilatado (sobrecarga de volume), causando a vibração audível de baixa frequência (melhor com a campânula). É o clássico 'galope ventricular' da Insuficiência Cardíaca Sistólica (Fração de Ejeção Reduzida). É importante notar que em crianças e adultos jovens (<30 anos) com estados hiperdinâmicos, a B3 pode ser fisiológica, mas em idosos é patognomônica de falência ventricular."
+            },
+            {
+                "id": 12,
+                "text": "Um idoso com história de tabagismo relata dor e queimação insuportável no pé direito que piora marcadamente à noite, quando está deitado na cama, impedindo o sono. Ele relata que a única forma de obter alívio é sentar-se na beira da cama e deixar a perna pendente (balançando para baixo) por alguns minutos. Esse tipo de dor de repouso é típico de qual patologia vascular e por que a posição pendente alivia o sintoma?",
+                "options": [
+                    { "text": "Insuficiência Venosa Crônica grave; a gravidade reduz o edema e a estase venosa.", "is_correct": false },
+                    { "text": "Trombose Venosa Profunda; a gravidade força a recanalização do trombo.", "is_correct": false },
+                    { "text": "Doença Arterial Obstrutiva Periférica (Isquemia Crítica); deixar o membro pendente permite que a força da gravidade auxilie o fraco fluxo arterial a perfundir os tecidos distais isquêmicos.", "is_correct": true },
+                    { "text": "Neuropatia periférica diabética (dor neuropática); a posição pendente estica os nervos periféricos e reduz o limiar de dor.", "is_correct": false }
+                ],
+                "justification": "A dor de repouso isquêmica, que tipicamente piora no decúbito dorsal (quando a força da gravidade não mais ajuda a perfusão arterial) e acorda o paciente à noite, é o estágio mais avançado (Isquemia Crítica) da DAOP. O paciente instintivamente adota a postura de deixar a perna pendente ou dorme em uma poltrona para que a gravidade ajude o sangue arterial a vencer a obstrução e chegar ao pé, aliviando a isquemia temporariamente."
+            },
+            {
+                "id": 13,
+                "text": "Um agricultor comparece à consulta de dermatologia por lesões ulceradas na face anterior da perna. A úlcera tem bordas irregulares, fundo úmido e não é muito dolorosa. Ao redor da úlcera, observa-se que a pele do terço inferior da perna está escurecida (castanha/marrom), espessada e o membro apresenta edema compressível (+2/+4). O paciente não relata dor para caminhar (claudicação). Qual o diagnóstico mais provável para a coloração escurecida e sua origem?",
+                "options": [
+                    { "text": "Dermatite Ocre; secundária à Insuficiência Venosa Crônica, onde a estase capilar causa extravasamento de hemácias e deposição de hemossiderina (ferro) na pele.", "is_correct": true },
+                    { "text": "Celulite infecciosa crônica; secundária a bactérias que produzem pigmentos melanínicos na derme.", "is_correct": false },
+                    { "text": "Necrose isquêmica arterial (Gangrena seca); devido à isquemia tecidual prolongada.", "is_correct": false },
+                    { "text": "Livedo Reticular; espasmo vascular prolongado ao frio.", "is_correct": false }
+                ],
+                "justification": "O quadro descreve a úlcera venosa clássica (acima dos maléolos, bordas irregulares, pouca dor, associada a edema e hiperpigmentação). A cor castanha na perna é a Dermatite Ocre. A fisiopatologia baseia-se na hipertensão venosa crônica que distende os capilares, permitindo o vazamento de glóbulos vermelhos para o espaço intersticial. Os macrófagos degradam a hemoglobina, depositando o ferro insolúvel (hemossiderina) que 'tatuí' a pele de marrom escuro."
+            },
+            {
+                "id": 14,
+                "text": "Sobre os achados anormais na percussão do tórax, associe corretamente o som percutido com a síndrome pulmonar correspondente:",
+                "options": [
+                    { "text": "Pneumonia (Consolidação) = Hipersonoridade; Pneumotórax = Macicez.", "is_correct": false },
+                    { "text": "Derrame Pleural = Macicez (nas bases); Enfisema (DPOC) = Hipersonoridade (ou timpanismo difuso).", "is_correct": true },
+                    { "text": "Atelectasia = Som claro pulmonar; Asma = Som maciço.", "is_correct": false },
+                    { "text": "Tuberculose escavada (Caverna) = Som maciço absoluto; Infarto pulmonar = Hipersonoridade.", "is_correct": false }
+                ],
+                "justification": "A percussão reflete a densidade dos tecidos subjacentes. Pulmão normal = Som Claro Pulmonar (Atimpânico). Aumento de ar aprisionado (Enfisema, Asma) ou ar livre na pleura (Pneumotórax) gera som Hiper-ressonante (Hipersonoro) ou Timpânico. Aumento de densidade, seja por líquido na pleura (Derrame), parênquima colapsado (Atelectasia) ou parênquima hepatizado por exsudato (Pneumonia/Consolidação), gera som Maciço ou Submaciço."
+            },
+            {
+                "id": 15,
+                "text": "Paciente, 65 anos, hipertenso crônico sem tratamento adequado, chega à emergência com dispneia franca e tosse. Exame físico: taquipneia (30 irpm), PA = 210x120 mmHg, turgência jugular normal a 45º, ausculta cardíaca com B4 presente no ápice. A ausculta pulmonar revela a presença de ruídos adventícios descontínuos, curtos, de alta frequência, percebidos predominantemente no final da inspiração e que NÃO se modificam ou limpam com a tosse, bilaterais nas bases. Que som respiratório é esse e o que sua presença bilateral neste contexto clínico sinaliza?",
+                "options": [
+                    { "text": "Roncos; indica hipersecreção crônica por bronquite induzida pela crise hipertensiva.", "is_correct": false },
+                    { "text": "Sibilos expiratórios; indica asma cardíaca isolada sem envolvimento alveolar.", "is_correct": false },
+                    { "text": "Atrito pleural; sinaliza derrame pleural secundário a embolia pulmonar.", "is_correct": false },
+                    { "text": "Estertores finos (crepitações); indicam Edema Agudo de Pulmão (congestão alveolar), caracterizando falência aguda de VE com aumento da pressão hidrostática pulmonar.", "is_correct": true }
+                ],
+                "justification": "Os ruídos descontínuos, curtos (similares a friccionar cabelo perto da orelha), no fim da inspiração e que não se alteram com a tosse são os estertores finos (crepitações). Eles ocorrem pela abertura súbita e estalante de pequenos brônquios e alvéolos previamente colabados por fluido. No contexto de uma crise hipertensiva grave com B4 (sobrecarga de VE), a presença de crepitações basais bilaterais é a marca clínica do Edema Agudo de Pulmão Cardiogênico (transudação por hipertensão venocapilar)."
+            },
+            {
+                "id": 16,
+                "text": "Um residente de clínica médica avalia um paciente internado e descreve a ausculta pulmonar no lobo médio direito: \"Ausculto um som respiratório rude, de alta intensidade e alta tonalidade, no qual a fase expiratória é mais prolongada e intensa que a inspiratória, semelhante ao ruído que ouço quando coloco o estetoscópio na traqueia do paciente. Notei também pectorilóquia fônica associada\". Que achado anormal é esse e a que síndrome ele pertence?",
+                "options": [
+                    { "text": "Som broncovesicular fisiológico do lobo médio; não pertence a nenhuma síndrome patológica.", "is_correct": false },
+                    { "text": "Sopro Tubário (ou Som Bronquial em topografia anormal); pertencente à Síndrome de Consolidação.", "is_correct": true },
+                    { "text": "Egofonia; pertencente à Síndrome do Derrame Pleural.", "is_correct": false },
+                    { "text": "Estridor laríngeo transmitido; pertencente à Síndrome Obstrutiva Alta.", "is_correct": false }
+                ],
+                "justification": "O som descrito é exatamente o Som Bronquial (ruído traqueobrônquico), que é normal na fúrcula esternal e traqueia. Quando esse som rude e de expiração forte é ouvido na periferia do pulmão (onde deveria haver apenas o suave Murmúrio Vesicular), ele é denominado Sopro Tubário (ou som bronquial patológico). Isso ocorre na Síndrome de Consolidação (ex: pneumonia), onde o tecido pulmonar denso transmite os sons das grandes vias aéreas centrais diretamente para a periferia sem filtrá-los. A pectorilóquia fônica confirma o diagnóstico."
+            },
+            {
+                "id": 17,
+                "text": "Um homem de 50 anos com obesidade apresenta edema isolado do membro inferior esquerdo que se instalou há 3 dias. A panturrilha esquerda mede 4 cm a mais de circunferência do que a direita. Observa-se rubor leve e aumento da temperatura local em relação ao membro direito. O médico realiza a dorsiflexão forçada do pé esquerdo do paciente com o joelho levemente fletido, e o paciente refere dor profunda na panturrilha. Como se chama o sinal semiológico testado e qual a principal suspeita clínica?",
+                "options": [
+                    { "text": "Sinal de Bancroft (ou Olow); Insuficiência Arterial Aguda.", "is_correct": false },
+                    { "text": "Sinal de Homans; Trombose Venosa Profunda (TVP).", "is_correct": true },
+                    { "text": "Sinal de Lemos Torres; Erisipela.", "is_correct": false },
+                    { "text": "Sinal da Gaveta; Rompimento de cisto de Baker.", "is_correct": false }
+                ],
+                "justification": "O edema assimétrico (unilateral) de início súbito, com empastamento, calor e rubor leve levanta forte suspeita de Trombose Venosa Profunda (TVP). O Sinal de Homans, classicamente associado à TVP em exames de semiologia, é positivo quando há dor na panturrilha à dorsiflexão rápida do pé (o que estira os músculos da panturrilha sobre as veias trombosadas inflamadas). (Nota clínica: tem baixa especificidade, mas é amplamente cobrado em provas)."
+            },
+            {
+                "id": 18,
+                "text": "No exame da cavidade bucal de um paciente grave com infecção respiratória recente e higiene oral muito precária (dentes em péssimo estado de conservação), o paciente relata que durante uma crise de tosse expulsou pela boca uma grande quantidade de secreção purulenta (cerca de meio copo), de forma explosiva e com odor fétido intenso. Esse tipo específico de expectoração é denominado:",
+                "options": [
+                    { "text": "Hemoptise escavada.", "is_correct": false },
+                    { "text": "Vômica.", "is_correct": true },
+                    { "text": "Escarro numular.", "is_correct": false },
+                    { "text": "Pseudo-hemoptise.", "is_correct": false }
+                ],
+                "justification": "A expulsão súbita, explosiva e maciça de líquido purulento ou não através da tosse, frequentemente com odor fétido (indicativo de infecção por anaeróbios da boca que foram broncoaspirados), é o conceito semiológico de Vômica. Ela ocorre quando uma cavidade cheia de material purulento (um abscesso pulmonar) ou um empiema pleural se rompe subitamente e drena o seu conteúdo para a árvore brônquica."
+            },
+            {
+                "id": 19,
+                "text": "Mulher de 30 anos relata palpitações intermitentes associadas a ansiedade, descritas como \"o coração dá um salto e para, depois volta a bater mais forte\". Ao palpar o pulso radial da paciente, você nota um ritmo regular basal que ocasionalmente é interrompido por um batimento que chega precocemente (pulsação mais fraca), seguido de uma pausa mais longa do que o normal, após a qual ocorre uma pulsação radial marcadamente mais forte e ampla do que as demais. Qual evento arrítmico melhor explica este achado?",
+                "options": [
+                    { "text": "Fibrilação Atrial com resposta ventricular variável.", "is_correct": false },
+                    { "text": "Extrassístole (batimento prematuro) seguida de pausa compensatória.", "is_correct": true },
+                    { "text": "Bloqueio Atrioventricular de 1º Grau.", "is_correct": false },
+                    { "text": "Taquicardia Supraventricular sustentada.", "is_correct": false }
+                ],
+                "justification": "A descrição é a apresentação clássica das extrassístoles (ventriculares ou atriais). O pulso precoce (extrassístole) é fraco porque o coração não teve tempo de se encher completamente de sangue. Esse batimento elétrico fora de hora zera o nó sinusal, causando uma pausa (Pausa Compensatória) até o próximo disparo normal. Durante essa longa pausa, o ventrículo enche-se muito mais do que o habitual, e pelo mecanismo de Frank-Starling, o próximo batimento é muito vigoroso (o \"salto\" ou \"soco\")."
+            },
+            {
+                "id": 20,
+                "text": "A ausculta do coração apresenta quatro áreas principais de ausculta valvar (focos). Qual alternativa descreve corretamente o foco de ausculta e a sua localização anatômica?",
+                "options": [
+                    { "text": "Foco Mitral: Localizado no 5º espaço intercostal esquerdo, na borda esternal esquerda.", "is_correct": false },
+                    { "text": "Foco Aórtico: Localizado no 2º espaço intercostal esquerdo, junto ao esterno.", "is_correct": false },
+                    { "text": "Foco Pulmonar: Localizado no 2º espaço intercostal esquerdo, linha paraesternal esquerda.", "is_correct": true },
+                    { "text": "Foco Tricúspide: Localizado no 4º espaço intercostal direito, linha hemiclavicular.", "is_correct": false }
+                ],
+                "justification": "Foco Pulmonar = 2º EIC esquerdo, paraesternal. Foco Aórtico = 2º EIC DIREITO, paraesternal. Foco Mitral = 5º EIC esquerdo, linha hemiclavicular (no ápice do VE). Foco Tricúspide = Base do apêndice xifoide ou 4º/5º EIC esquerdo, junto à borda esternal."
+            },
+            {
+                "id": 21,
+                "text": "Ao classificar o estadiamento TNM do câncer de pulmão, um oncologista encontra o paciente rouco e com dispneia devido ao lado direito do diafragma estar paralisado e elevado. Além disso, o paciente apresenta constrição pupilar (miose), ausência de suor (anidrose) e queda da pálpebra (ptose) do lado direito da face. Esses sinais indicam, respectivamente, lesões metastáticas ou compressão por invasão de quais estruturas nervosas específicas?",
+                "options": [
+                    { "text": "Paralisia do nervo vago; invasão do plexo braquial; paralisia do nervo facial.", "is_correct": false },
+                    { "text": "Paralisia do nervo laríngeo recorrente; paralisia do nervo frênico; Síndrome de Horner por invasão da cadeia simpática cervical inferior (Tumor de Pancoast).", "is_correct": true },
+                    { "text": "Paralisia das pregas vocais primárias; miastenia gravis paraneoplásica; Síndrome da Veia Cava Superior.", "is_correct": false },
+                    { "text": "Paralisia bulbar isquêmica; Síndrome de Lemos Torres miopática; Síndrome de compressão medular.", "is_correct": false }
+                ],
+                "justification": "Sinais de invasão loco-regional do CA de Pulmão avançado (frequentemente apical ou no sulco superior): Rouquidão = Compressão do nervo laríngeo recorrente (geralmente esquerdo, sob o arco aórtico, mas pode ser direito sob a subclávia). Diafragma paralisado = Compressão do nervo frênico ipsilateral. A tríade de Miose, Anidrose e Ptose palpebral (frequentemente com enoftalmia) ipsilateral ao tumor denomina-se Síndrome de Horner, causada por invasão tumoral direta na via simpática cervical inferior (Gânglio Estrelado), prototípica do Tumor de Pancoast."
+            },
+            {
+                "id": 22,
+                "text": "Paciente do sexo feminino, 32 anos, é internada por endocardite bacteriana. Durante o exame diário, o cardiologista pede para que a paciente se deite em decúbito lateral esquerdo (manobra de Pachon) e, com a campânula do estetoscópio posicionada no 5º espaço intercostal esquerdo na linha hemiclavicular (ápice), percebe um som ruidoso e diastólico em \"rufar de tambor\" que diminui de intensidade e termina com um estalo forte antes da primeira bulha (B1). Qual válvula está acometida e qual a lesão anatômica provável?",
+                "options": [
+                    { "text": "Insuficiência Mitral, com o sopro ocorrendo devido à regurgitação do VE para o AE.", "is_correct": false },
+                    { "text": "Estenose Mitral, com o sopro ocorrendo pelo difícil esvaziamento do AE para o VE na diástole.", "is_correct": true },
+                    { "text": "Insuficiência Aórtica, refletindo o jato de regurgitação da raiz aórtica para o VE.", "is_correct": false },
+                    { "text": "Estenose Aórtica severa com irradiação atípica apical (Fenômeno de Gallavardin).", "is_correct": false }
+                ],
+                "justification": "O foco auscultado é o Mitral (ápice, 5º EIC LHE). O som ocorre na Diástole. A estenose mitral (dificuldade de abrir) gera turbulência durante a fase de relaxamento e enchimento ventricular, pois o sangue passa por um orifício estreitado. Esse som é classicamente um \"ruflar diastólico\" com reforço pré-sistólico. A posição de decúbito lateral esquerdo, que aproxima o ápice do coração da parede torácica, e a campânula (para sons graves) são as técnicas ideais para auscultar a estenose mitral."
+            },
+            {
+                "id": 23,
+                "text": "Um recém-nascido de termo desenvolve rapidamente esforço respiratório nas primeiras horas de vida. O médico pediatra observa intensa retração esternal, tiragem intercostal, batimento de asa de nariz e uma respiração muito curta e superficial. Qual o mecanismo físico primário responsável pela formação da \"tiragem\" no exame respiratório do lactente e do adulto em insuficiência respiratória obstrutiva?",
+                "options": [
+                    { "text": "Contração espástica dos músculos peitorais maiores devido à hipóxia tecidual generalizada.", "is_correct": false },
+                    { "text": "Pressão intratorácica intensamente negativa gerada pela contração forte do diafragma contra vias aéreas obstruídas, sugando as partes moles intercostais e suprasternais para dentro.", "is_correct": true },
+                    { "text": "Paralisia e flacidez temporária da musculatura intercostal externa devido ao cansaço respiratório.", "is_correct": false },
+                    { "text": "Aumento extremo da pressão intratorácica positiva que força o tecido mole para fora durante a expiração e colapsa na inspiração passiva.", "is_correct": false }
+                ],
+                "justification": "A tiragem (retração de espaços intercostais, fossas supraclaviculares ou apêndice xifoide durante a inspiração) é um sinal de esforço respiratório severo, muitas vezes frente a uma obstrução de vias aéreas ou pulmão rígido. Para conseguir puxar o ar, a bomba respiratória (principalmente diafragma) contrai com muita força, criando um vácuo anormalmente alto (pressão intensamente negativa) dentro do tórax. Essa forte \"sucção\" puxa os tecidos moles não ósseos da parede torácica para dentro durante a inspiração."
+            },
+            {
+                "id": 24,
+                "text": "O paciente idoso com insuficiência cardíaca crônica é avaliado no ambulatório. Sua PA está normal. Ele refere fadiga e dispneia (mMRC 2), mas seu exame físico pulmonar não revela estertores e não há ascite ou turgência jugular. Seu médico avalia a microcirculação e nota extremidades (mãos e pés) arroxeadas, com TEC (tempo de enchimento capilar) de 4 segundos e pulso radial muito fino. Baseado no perfil de Stevenson (A, B, C, L/D), em qual classificação ele se encontra?",
+                "options": [
+                    { "text": "Perfil A (Quente e Seco).", "is_correct": false },
+                    { "text": "Perfil B (Quente e Úmido).", "is_correct": false },
+                    { "text": "Perfil C (Frio e Úmido).", "is_correct": false },
+                    { "text": "Perfil D / L (Frio e Seco).", "is_correct": true }
+                ],
+                "justification": "A classificação à beira-leito avalia perfusão e congestão. Sem estertores, ascite ou turgência = não há sinais de congestão (\"Seco\"). Extremidades pálidas/arroxeadas, pulso fino e TEC prolongado > 3s = há sinais clínicos de hipoperfusão sistêmica e baixo débito (\"Frio\"). Portanto, ele está Frio e Seco, o que corresponde ao Perfil L (Low profile) na literatura internacional, frequentemente adaptado para D no Brasil. (A=Quente/Seco; B=Quente/Úmido; C=Frio/Úmido)."
+            },
+            {
+                "id": 25,
+                "text": "Analise a radiografia de tórax mentalmente: Um paciente jovem apresenta dispneia severa, hipotensão e cianose central. O RX mostra pulmão direito radiolúcido (completamente negro/escuro) com ausência de trama vascular, enquanto o mediastino (coração e traqueia) está acentuadamente empurrado em direção ao pulmão esquerdo. Baseado nesta descrição clássica, qual a atitude propedêutica IMEDIATA na emergência, confirmando qual diagnóstico fisiopatológico?",
+                "options": [
+                    { "text": "Intubação orotraqueal e sedação profunda para asma brônquica aguda grave (estado de mal asmático).", "is_correct": false },
+                    { "text": "Punção torácica com agulha no 2º espaço intercostal para descompressão de Pneumotórax Hipertensivo, que impede o retorno venoso reduzindo o débito cardíaco ao choque.", "is_correct": true },
+                    { "text": "Drenagem torácica no 6º espaço intercostal devido a Hemotórax Maciço restritivo compressivo.", "is_correct": false },
+                    { "text": "Trombólise química imediata para Tromboembolismo Pulmonar da artéria principal direita.", "is_correct": false }
+                ],
+                "justification": "A descrição clínica de instabilidade hemodinâmica (hipotensão/cianose) acompanhada do desvio da traqueia e do coração para o lado saudável (esquerdo), com radioluscência total (ar, escuro) sem parênquima visível do lado direito, é a definição exata e fatal do Pneumotórax Hipertensivo. O ar sob pressão comprime as veias cavas no mediastino (impedindo o retorno de sangue para o AD = choque obstrutivo). A conduta de salvamento imediata e emergencial no pré-hospitalar/ATLS é a descompressão torácica por agulha fina (toracocentese de alívio)."
+            },
+            {
+                "id": 26,
+                "text": "Um idoso com antecedente de câncer gástrico é avaliado na enfermaria. Na pesquisa e palpação de linfonodopatias (gânglios), o estudante palpa na junção do pescoço com a clavícula, no lado esquerdo, um linfonodo isolado, endurecido, fixo e indolor de 2 cm. Este gânglio supraclavicular esquerdo tem um nome epônimo clássico e sinaliza o quê?",
+                "options": [
+                    { "text": "Linfonodo de Osler; sinaliza Tuberculose ganglionar disseminada primária.", "is_correct": false },
+                    { "text": "Linfonodo de Virchow (Sinal de Troisier); sinaliza metástase de neoplasia intra-abdominal ou pélvica disseminada via ducto torácico linfático.", "is_correct": true },
+                    { "text": "Nódulo de Sister Mary Joseph; sinaliza sarcoma de Kaposi retroperitoneal inflamatório.", "is_correct": false },
+                    { "text": "Linfonodo de Lemos-Torres; sinaliza carcinoma epidermoide de lobo pulmonar apical esquerdo (Pancoast).", "is_correct": false }
+                ],
+                "justification": "A presença de uma linfonodopatia palpável, dura e fixa na fossa supraclavicular esquerda (Linfonodo de Virchow, correspondente ao Sinal clínico de Troisier) é um forte indício de malignidade metastática. Devido à anatomia linfática, onde a linfa de quase todo o trato gastrointestinal e abdominal sobe pelo grande Ducto Torácico e deságua na veia subclávia esquerda, cânceres do abdome (especialmente gástrico, ovariano, testicular ou renal) formam metástases clássicas nesse linfonodo como primeiro sentinela sistêmico palpável."
+            },
+            {
+                "id": 27,
+                "text": "Ao auscultar a base pulmonar esquerda de um paciente idoso internado, que encontra-se na fase final de consolidação de uma pneumonia bacteriana (hepatização cinzenta para amarela), o estudante relata que, ao pedir para o paciente falar em tom normal a palavra \"trinta e três\", a voz não atinge o estetoscópio como um balbucio abafado, mas sim nítida, alta e as sílabas são perfeitamente distinguíveis. Na ausculta pulmonar dos sons vocais, qual é o termo apropriado para esta nítida transmissão da voz e por que ela ocorre?",
+                "options": [
+                    { "text": "Broncofonia isolada; ocorre pois há exsudato estéreo acumulado na pleura atenuando as frequências graves.", "is_correct": false },
+                    { "text": "Egofonia; ocorre pois o balido estridente substitui as vogais ressonantes.", "is_correct": false },
+                    { "text": "Pectorilóquia (fônica); ocorre pois a condensação inflamatória (sólida) do tecido alveolar e peribrônquico transmite o som das grandes vias aéreas com uma eficiência imensamente superior ao tecido normal esponjoso e cheio de ar.", "is_correct": true },
+                    { "text": "Murmúrio Vesicular sussurrado; reflete o mecanismo normal de transmissão pelas cordas tendíneas laríngeas.", "is_correct": false }
+                ],
+                "justification": "A Pectorilóquia (do latim \"o peito que fala\") é o extremo da transmissão do som da voz falada (Pectorilóquia fônica) ou até mesmo do sussurro (Pectorilóquia afônica). Em um pulmão normal, as minúsculas bolhas de ar alveolares dispersam e abafam as frequências da fala e o que ouvimos com o estetoscópio é ininteligível. Quando os alvéolos perdem o ar e enchem-se de exsudato inflamatório e purulento (Sindrome de Consolidação), tornam-se uma massa contínua sólida que transmite perfeitamente o som da laringe até a parede torácica, tornando a voz auscultada cristalina."
+            },
+            {
+                "id": 28,
+                "text": "O reflexo da tosse é um mecanismo fundamental. Considere um paciente idoso com quadro clínico de refluxo gastroesofágico crônico grave noturno. Ele não apresenta febre, e o seu Rx de tórax é normal. Contudo, há dois meses, todas as madrugadas, cerca de 2 horas após dormir, ele acorda engasgado, relatando uma tosse intensa e ruidosa associada à emissão de sons de estrangulamento que dura minutos. Analisando as fases da tosse e os reflexos neurológicos, qual é a origem fisiopatológica mais provável e a classe dessa tosse?",
+                "options": [
+                    { "text": "Origem cardiogênica; tosse úmida decorrente do represamento retrógrado do sangue capilar no parênquima ao deitar, causando microedemas pulmonares alveolares.", "is_correct": false },
+                    { "text": "Origem inflamatória brônquica (DPOC tardio); tosse crônica produtiva que agudiza devido ao acumulo diário matinal de muco paralisado pela postura.", "is_correct": false },
+                    { "text": "Origem química irritativa extratorácica; tosse seca de engasgo, reflexa à microaspiração ou banho de ácido gástrico do refluxo sobre os receptores laríngeos e traqueais altos.", "is_correct": true },
+                    { "text": "Origem psicogênica neuro-vegetativa; espasmos da glote decorrentes de episódios de terror noturno da demência isquêmica inicial.", "is_correct": false }
+                ],
+                "justification": "O paciente que deita logo após comer em presença de DRGE (Doença do Refluxo Gastroesofágico) permite a volta passiva do suco ácido para o esôfago superior, orofaringe e até microaspirações pela fenda glótica durante a respiração frouxa do sono. Esse ácido ativa intensamente as vias aferentes reflexas vagais irritativas químicas dos receptores traqueolaríngeos, precipitando severos ataques paroxísticos de tosse seca e asfixiante que acordam o paciente. A DRGE é uma das três principais causas de tosse crônica (junto com gotejamento pós-nasal e Asma)."
+            },
+            {
+                "id": 29,
+                "text": "Mulher jovem com dores de cabeça constantes iniciou medicação que possui forte efeito de bloqueio simpático sistêmico (betabloqueador). Cerca de um mês após, ela queixa-se no pronto-socorro que toda vez que se levanta muito rápido da cama pela manhã, a visão escurece, ouve um zumbido, sente tontura iminente e sofreu um evento em que caiu desacordada no chão com retorno completo à consciência em menos de 15 segundos, sem movimentos anormais. Como classificar este evento semiológico e seu mecanismo gerador com a medicação?",
+                "options": [
+                    { "text": "Crise Epiléptica Tônico-Clônica Generalizada; o remédio reduz o fluxo neuronal, ativando focos focais nas meninges temporais.", "is_correct": false },
+                    { "text": "Síncope Vasovagal Clássica reflexa (neuromediada); mediada pelo excesso de ativação parassimpática gástrica após deitar no escuro.", "is_correct": false },
+                    { "text": "Lipotímia Histeriforme psicogênica; ataque de pânico secundário ao efeito cronotrópico no sistema límbico com falso desmaio.", "is_correct": false },
+                    { "text": "Síncope por Hipotensão Ortostática; o medicamento inibe a vasoconstrição reflexa taquicárdica necessária do sistema simpático e a pressão da artéria cerebral cai vertiginosamente ao assumir a postura ereta.", "is_correct": true }
+                ],
+                "justification": "O evento transiente de perda da consciência com recuperação espontânea integral, sem período pós-ictal longo (sem letargia persistente ou confusão), é a definição da Síncope. O mecanismo em que ocorre estritamente ao se levantar abruptamente e está associado ao uso de bloqueadores simpáticos é a clássica Síncope por Hipotensão Ortostática. Ao se levantar, o sangue represa nas pernas (gravidade) caindo o retorno venoso; o corpo precisa ativar receptores beta/alfa adrenérgicos reflexos para aumentar a FC e constringir as pernas rapidamente, evitando a queda do debito para a cabeça. Bloqueadores inibem este reflexo salva-vidas postural imediato."
+            },
+            {
+                "id": 30,
+                "text": "A asimetria térmica em membros suspeitos de patologias vasculares é fundamental no raciocínio sindrômico em pacientes internados ou na emergência. Qual alternativa relaciona perfeitamente a variação térmica semiológica local (frio ou calor) à sua correspondente fisiopatologia da doença instalada no membro?",
+                "options": [
+                    { "text": "Membro inferior marcadamente FRIO em relação ao contralateral = Sinal Típico da Celulite Estreptocócica (processo supurativo bloqueia artérias pequenas, gelando a pele).", "is_correct": false },
+                    { "text": "Membro inferior marcadamente FRIO, empalidecido, com dor lancinante e ausência de pulsos em poucas horas = Sinal de Oclusão Arterial Aguda (Embolia arterial cortando o fluxo quente do sangue oxigenado tecidual).", "is_correct": true },
+                    { "text": "Membro inferior intensamente QUENTE ao toque, avermelhado e latejante difusamente na pele com descamação e claudicação intermitente = Insuficiência Arterial Crônica Obstrutiva DAOP avançada e crônica progressiva.", "is_correct": false },
+                    { "text": "Membro inferior QUENTE isolado apenas nas panturrilhas e perimaleolar, pele fina sem pelos, dor ao levantar a perna e ausência de úlceras, pulso radial normal = Trombose Venosa Profunda massiva dos vasos de capacitância ilíacos de mais de um ano.", "is_correct": false }
+                ],
+                "justification": "A temperatura local da pele dos membros é fortemente influenciada pelo fluxo e volume sanguíneo ativo do leito profundo. O rubor e o calor intensos significam aumento de fluxo local (hiperemia, estase inflamatória na TVP, flebites superficiais e celulite/erisipela). A PALIDEZ, acompanhada de dor intensa e PELE FRIA (poiquilotermia) são os piores e mais evidentes sinais de Oclusão Arterial Aguda (regra dos 6 \"P\"s da semiologia angiológica: Palidez, Pain(dor), Parestesia, Paralisia, Pulselessness(sem pulso), Poiquilotermia(frio))."
+            },
+            {
+                "id": 31,
+                "text": "A Manobra de Allen, ensinada na propedêutica vascular periférica do membro superior, serve principalmente para atestar a patência vascular interligada de um arco na mão. Antes de puncionar e colocar um cateter arterial em terapia intensiva, a Manobra de Allen é obrigatória. A quem ela testa na circulação, ao pedir que o paciente abra e feche os punhos enquanto o avaliador comprime ambos os grandes vasos do punho, liberando um deles depois?",
+                "options": [
+                    { "text": "Demonstra o fluxo capilar venoso reverso que reabastece os pequenos nódulos interdigitais periféricos na base das válvulas ungueais.", "is_correct": false },
+                    { "text": "Testa se há retorno sanguíneo oxigenado para o arco palmar profundo (da mão) predominantemente mantido pela perviedade não afetada e colateral da Artéria Ulnar, garantindo assim que a Artéria Radial possa ser perfurada com segurança.", "is_correct": true },
+                    { "text": "Monitora e avalia se o ritmo dos pulsos subclávios colaterais conseguem transpassar as isquemias dos ramos venosos do arco cubital superficial peritendíneo.", "is_correct": false },
+                    { "text": "Sinal clássico prognóstico de inflamação nas úlceras arteriais digitais do Fenômeno de Buerger distal ou acrocianose por frio da Doença de Raynaud mista em grandes tabagistas maduros.", "is_correct": false }
+                ],
+                "justification": "A Artéria Radial e Ulnar se unem e irrigam a mão pelo arco palmar superficial e profundo. Quando a artéria Radial é selecionada e puncionada para medidas cirúrgicas agressivas (como cateterismo para PAI ou gasometria no pulso) há risco inerente de trombose e perda permanente do vaso radial. Para que os dedos não necrosam e morram, a Artéria Ulnar (vaso parceiro e paralelo do lado mindinho do braço) precisa estar forte, saudável e pervérvia, suprindo fluxo para a mão intera e garantindo redundância segura através do arco anastomosado das mãos. O Allen Test a comprova visualmente medindo a velocidade com que a vermelhidão retorna a palma da mão através exclusivamaente da Artéria Ulnar desobstruída."
+            },
+            {
+                "id": 32,
+                "text": "Paciente, com asma em exacerbação grave refratária com quadro infeccioso na UPA, e piora gradativa nas últimas seis horas de espera, entra em prostração ruidosa no seu último chamado. Durante a Ausculta pulmonar efetuada a beira do leito do enfermeiro responsável na hora de reportá-lo a emergência o achado revelou o \"Tórax Silencioso\" com profunda letargia.  Semiológicamente oque isso denota fisio e patológicamente ?",
+                "options": [
+                    { "text": "Uma compensação benigna da musculatura lisa da glote induzindo silêncio no fluxo lamelar dos grandes troncos reduzindo atrito aéreo aos brônquios que expandiram perfeitamente nas periferias pela hipóxia crônica.", "is_correct": false },
+                    { "text": "Indica falha severa do VD com ascite induzindo parada generalizada no movimento passivo das pleuras sem impacto na ventilação global diafragmatica principal e o som sumiu por espessamento local de pele.", "is_correct": false },
+                    { "text": "A exaustão extrema da musculatura inspiratória atrelada com asfixiante broncoespasmo quase total impendem o ar de produzir fluxo mensurável em grandes ou pequenas vias;  não conseguindo gerar, desta forma, nenhum atrito ressonante ou sibilo detectável no parênquima em colapso isquêmico ventilatório e respiratório de eminente parada cardiaca mortal.", "is_correct": true },
+                    { "text": "Diagnostica uma migração errática de êmbolos da DVT (trombose venosa) crônica para a aorta ascendente suprimindo reflexos auditivos acústicos das vias de alto e baixo som dos roncos e os crepitantes e o abafando em sangue coagulado alveolar e necrose isquêmica massiva sem dor do parênquima superior inflamatório lobar misto.", "is_correct": false }
+                ],
+                "justification": "Na evolução de asmas brônquicas e estados de mal severo os sons audíveis ruidosos espásticos sibilantes expiratórios podem diminuir de intensidade subitamente. Contudo este som reduzido na presença clinica de confusões, bradicardia, e extremado cansaço com falhas nas musculaturas não prediz cura milagrosa mas denota incapacidade volumétrica vital asfixiante generalizada da musculatura respirar e empurrar volume residual pelas extremas tubulações estreitas que sequer roçam contra seu escarro (impedindo fisicamente vibrações harmônicas constritoras ou musicais na ausculta e o pulmão para de soar)."
+            },
+            {
+                "id": 33,
+                "text": "Uma adolescente comparece na consulta eletiva preocupada com deformidades na parede anterior esternal da sua clavícula. Durante a inspeção torácica a médica analisa que a área logo acima do estômago se encontra rebaixada formando uma bacia funda sobressaída sobre as partes condrais e claviculares da menina. Essa anomalia estrutural do tórax em sino não causa impactos severos pulmonares diretos e o nome clínico correto à ectoscopia será:",
+                "options": [
+                    { "text": "Cifoescoliose Idiopática (Tórax de Loro).", "is_correct": false },
+                    { "text": "Tórax Cariniforme (Pectus carinatum ou Peito de Pombo).", "is_correct": false },
+                    { "text": "Tórax Infundibuliforme (Pectus excavatum ou Peito de sapateiro).", "is_correct": true },
+                    { "text": "Tórax Chato senil e em barril de tonéis restritivos e achatados (Acondroplasia severa apical inflamatória primária congênita).", "is_correct": false }
+                ],
+                "justification": "A deformidade em que o esterno encontra-se afundado para dentro formando uma cavidade na face anterior do peito ou torax se denomina \"Tórax Infundibuliforme\" do nome infundibulum em latim (funil) também classificado em jargões clássicos como Peito em funil, ou Pectus Excavatum (tórax escavado). Caracteristicamente não produz sequelas respiratórias graves desde nascença a menos em anomalias que comprima intensamente a motilidade do coração (M. Marfan por exemplo) e possui origens ligadas ao crescimento dos tecidos mesenquimais das costelas cartilaginosas adjacentes frontais tracionando as fáscias pra dentro desproporcional ao arco esquelético no corpo."
+            },
+            {
+                "id": 34,
+                "text": "Durante exame propedêutico avançado num hipertenso, além de identificar um ruído diastólico na campânula devido ao átrio combater a rigidez crônica adaptativa obstrutiva miocárdica (B4 - Ritmo de galope). Nota-se uma elevação anormal pulsátil rítmica localizada nas regiões superiores paramedianas e esquerdas do esterno do tórax percussivo na porção central. Este ictus impulsivo de áreas esquerdas é mais precisamente percebido ou mapeado e associado à palpação de qual fenômeno crônico do eixo cardio aórtico?",
+                "options": [
+                    { "text": "Ictus transposto com deslocamento inferior subxifóideo marcando crescimento de VE agudo em paciente idoso isquêmico silencioso sem ICC associada com onda em Canhão na Jugular esq.", "is_correct": false },
+                    { "text": "Palpação de frêmitos difusos sem irradiação na fúrcula marcando o hiperdinamismo associado aos cistos pericárdicos calcificados por infecções granulomatosas anteriores de Sífilis restritivas purulentas parietais espaciais inter e posteriores pulmonares com hiperressonância adjacente torácica.", "is_correct": false },
+                    { "text": "Abaulamento pulsátil forte, levantamento em massa da grade costal (Impulsão Paraesternal Esquerda), associado tipicamente com Sobrecarga Ventricular Esquerda Concêntrica, dilatações da artéria pulmonar central, aneurismas ou a hipertrofia secundária às pressões da grande circulação ou focos de HAS.", "is_correct": true },
+                    { "text": "Choques percussivos difusos nos seios e recessos venosos profundos no ápice refletindo o frêmito palpável brônquico estalado pela abertura prematura e fisiológica da tricúspide (fase ERV da Diástole de ICFER no foco 5 EIC Direito).", "is_correct": false }
+                ],
+                "justification": "A palpação precordial não aponta unicamente para as batidas da ponta de ictus inferior normal. Impulsões (quando se coloca a região ulnar ou base da mão na borda paraesternal e fúrcula supraesternal esquerda do paciente decúbito e ela é levantada para cima e ritmicamente pelo ciclo do peito) revelam o engurgitamento volumoso e duro de batidas e os frêmitos tateais decorrentes das sobrecargas do VE hipertrofiado no hipertenso clássico ou mesmo das dilatações nos ramos artérias proximais de aneurismas batendo contra parede osso torácica com suas hiperdinâmicas contráteis hiperplásicas musculares subjacente. Esse \"bater tátil\" costal esquerdo indica a intensa energia do Ventriculo contraído e espessado e dilatado (sobrecarga sistólica e de pico diastólico)."
+            },
+            {
+                "id": 35,
+                "text": "Em suspeitas semiológicas de insuficiência cardíaca crônica grave que englobem diagnósticos de edema periférico generalizado ou o derramamento ascítico de repouso crônico ascite; Como proceder adequadamente o exame e o que significa a positivação fidedigna do Refluxo (ou reflexo) HepatoJugular sobre leito na manobra na beira do leito do doente com pescoço a 45 graus com compressões no quadrante superior do epigástrio abdominal profundo?",
+                "options": [
+                    { "text": "Uma distensão contínua, prolongada e marcante da veia jugular central externa para além de seus parâmetros basais que não regridem antes de cessar o alívio das pressões da mão do operador revelam estases cronicamente avançadas nas competências volumétricas bombeantes de recuo retrógadas passivas atriais e incompetências falhas musculares (sistólicas) de complacências restritas e engurgitamentos de reserva do eixo cardíaco direito (VD), a uma sobrecarga imediata hídrica na inspiração e sucções forçadas do diafragma pelas veias cavas retroperitoniais abdominais inferior forçada pelo empurre da veia esplênica local comprimida visceral para cima.", "is_correct": true },
+                    { "text": "Redução acentuada visível turgida em colapso imediato temporal após a manipulação ou a respiração prolongada demonstrando que a manobra vagal aciona nervos parassimpáticos no baço reativando o sistema de controle diurético renal aliviando em reflexos nervosos pélvicos as sobrecargas agudas hídricas viscerais locais isquêmicas de insuficiências e disfunções valvares mitrais agudas (ICFER Esq crônico progressiva exsudada ascitica primária sistêmica fatal no leito pélvico do mesentério de infarto isquêmico do intestino).", "is_correct": false },
+                    { "text": "Queda sistêmica e bradicardias extremas simultâneas demonstrando síncopes reativas em pacientes com infartos silentes recentes que possuem bloqueios cardíacos de ramo nas válvulas bicúspides e nos nódulos vagais do fígado cronicamente infartados pelo baixo fluxo atrelado as varizes em pernas e trombose avançadas na parede pélvica uterina cronicamente infladas com veia perna.", "is_correct": false },
+                    { "text": "Retrações pulsáteis em colapso paradoxal da parede jugular central esquerda com dor excruciante na costela falsa direita no movimento passivo abdominal na respiração revelam uma oclusão aórtica dissecante total e tamponamento massivo do saco pericárdio por derrame seroso reacional ou de origem urêmica em casos de hepatites agudas no tórax.", "is_correct": false }
+                ],
+                "justification": "O objetivo fundamental desta técnica (compressões contínuas lentas, firmes por ~30s abdominais) eleva abruptamente ou desvia um enorme fluxo e acúmulo dos seios de reserva sanguíneos das veias no tronco gastrointestinal portal diretamente de encontro pela via Cava inferior às fracas paredes cavitárias de recepção direita do Atrio e VD. Se este ventrículo doente com patologias obstrutivas, insuficientes (IC) do VD for incapaz (pela falha reacional mecânica sistólica e excesso crônico restrito residual VSF final diastolico basal sem reservas distensiveis ou forcas contratural p ejeção) de acomodar e sugar a rebotada deste lago maciço empurrado a si do útero o sangue passivamente sem resistências transborda (ou sobe visivelmente pela gravidade e colunas tubulares aquosas desvalvuladas do pescoço em pressão hidrostática estática visível a turgência perigosa da linha d'agua ou sangue na veia Jugular central a qual reflete fielmente as pressões venosas centrais aumentadas no momento atestando e positivando disfunção VD imediata local associada falência congestão)."
+            },
+            {
+                "id": 36,
+                "text": "O exame semiológico da tosse e expectoração trazem dados de localização ou inflamação. Assinale a afirmativa verdadeira sobre a propedêutica e tipos do escarro nos doentes de patologias respiratórias.",
+                "options": [
+                    { "text": "A presença crônica e intermitente de expectoração mucopurulenta sanguinolenta e viscosa volumosa sem raias fétidas e sem vômica matutinas ao se deitar exclui completamente as suspeitas obstrutivas brônquicas, sinalizando com altíssima especificidade para apenas patologias alérgicas obstrutivas primárias isoladas (Asmas) sazonais sem inflamações bacterianas na traqueia.", "is_correct": false },
+                    { "text": "A secreção rósea abundante (coloração rosácea) e muito espumosa, aerada ou mucoserosa hialina clara eliminada às pressas no auge de crises de dispneias severas agudas e sudorese frias não tem origem alveolar inflamatória supurativa mas transudativa; sendo patognomônicos no diagnóstico visual prático e indicativos e sinais clássicos da inundações exsudativas alveolares agudas dos capilares pulmonares cardíacos rotos decorrentes das patologias agudas cardíacas hipertensivas venocapilar esquerdas graves nos alvéolos de (Edema Agudo Pulmonar) e falência ventricular aguda associada à ICC esquerda.", "is_correct": true },
+                    { "text": "Vômica consiste primariamente no achado rotineiro subagudo no escarro de resíduos fecais e fluidos pancreáticos oriundos e decorrentes das fístulas abertas traqueo abdominais no pós operatório em pneumonias basais necrosadas de lóbulo médio inferior e apicais associadas às patologias bronco obstrutivas do baço esquerdo com a traqueia alta e dor.", "is_correct": false },
+                    { "text": "Uma tosse que expele sangue limpo de pequenos a moderados volumes aerados pela boca oriundo das grandes e médias vias brônquicas lesadas com origem na microvascularização de parênquimas necrosantes inflamados ou tubérculos denomina-se Hematêmese maciça inferior associadas aos choques de disfunções gástricas hemorrágicas altas agudas em varizes portais estouradas no estômago associadas aos linfomas torácicos crônicos graves difusos nas glândulas gástricas apicais na traqueia do idoso e jovem e infartos isquêmico agudos brônquico alveolar pulmonar.", "is_correct": false }
+                ],
+                "justification": "O líquido hialino aerado e roseo e espumante em excesso nas vias aéreas altas expurgado por tosse na sufocante asfixia agonizante em paciente sudoréticos ou taquipneicos atesta e marca classicamente as piores inundações rápidas difusas alveolares serosas hemorrágicas microscópicas do edema agudo ou insuficiência e hipertensões graves venocapilares por incapacidades abruptas na falência e ejeções do ventrículo esquerdo doentes (que represou todo sangue reverso passivamente para as redes arteriais da difusão esponjosa das membranas dos pulmões o qual escapou para área aerada alvéolos ocluíndo toda e as trocas O2 locais num trágico sufocamento sistêmico local) ."
+            },
+            {
+                "id": 37,
+                "text": "Durante exame radiológico na emergência e semiológico minucioso no plantão, para discernimento nos derrames pleurais (entre derramamento inflamatório bacteriano exsudativos das neoplastias malignas inflamatórias para os mecânicos puros) de um grande efusão e derrame loculado basilar do paciente com macicez e egofonia; o que significa identificar ao Rx decúbitos (Projeções do Laurell) em incidência PA tórax os arredondamentos radiopacos ascendentes perfeitamente suaves periféricos convexos de limite liso tangencial de borramentos homogêneos dos seios costofrênicos acompanhando borda lateral ascendente na cúpula inferior axilar ou parede toraco abdominal direita externa da pleura subjacente na inspiração?",
+                "options": [
+                    { "text": "Representa o preenchimento aéreo focal expansível obstrutivo por hiperinsuflações cisticas enfisematosas de bulhas na parede lobar visceral indicando aprisionamento aéreo focal com hiperressonância adjacente torácica que desviam perfeitamente as mediastinais ipsilaterais opostas à percussão timpânica das bulhas de compensação por bronquite asmática avançadas no ápice inferior esquerdo de velamentos nas bordas do apêndice cúpula.", "is_correct": false },
+                    { "text": "Imagem inespecífica compatível de lesões tumorais centrais primárias malignas nodulares necróticas que infiltram massivamente as redes vasculares hilar centrais (Atelectasia de Reabsorção focal de ar do espaço inter brônquico) as quais suprimem com consolidação pulmonar condensadas inflamatórias de consolidação a transparência de radio densas normais locais formando meniscos centrais lobares pulmonares maciços ou escavados com pectorilóquia local.", "is_correct": false },
+                    { "text": "Demonstra o espessamento natural dos músculos retos torácicos do esporte da musculação gerando frêmitos difusos sem irradiação na fúrcula marcando artefatos normais subjacentes visuais periféricos ao ar com frêmitos táteis de ar inflamatório lobar basais difusos e hipersonoridade adjacente pleural torácico muscular de cistos ósseos inflamados subperitoniais parietais de Sífilis.", "is_correct": false },
+                    { "text": "O achado semiológico radiológico atesta ou materializa visivelmente a coleção de fluídos interpleurais livres dependentes que se alinham na capilaridade e tensão passiva parietal gravitacional local subindo ou escalando suavemente nas periferias externas pleurais (Sinal Clássico Físico do Menisco Convexo da Curva parabólica ascendente do Damoiseau - Eliss), confirmando objetivamente sem dúvidas e delineando presenças de efusões livres fluidas inflamatórias ou hidrostáticas densas dos pequenos derrames ou velamentos nos costofrenicos opacos no RX na percussão submaciça.", "is_correct": true }
+                ],
+                "justification": "A obliteração aguda inferior branca ou do recesso/seio inferior angulado agudo lateral costo e do musculo diafragmático acompanhada da sombra opaca homogenea ou branca de um menisco crescente parabólico lateral ao tórax costal (como meio copo de agua cheio ate a boca no limite da parede) revela inequivocamente e patognomônicamente em chapas bidimensionais PA em pé as coleções aquosas radiopacas ou derrames transudatos exsudatos maciços e líquidos interposto na pleural virtual subpulmonar ou basal periférico de Damoiseau. "
+            },
+            {
+                "id": 38,
+                "text": "Você ausculta um paciente com asma e detecta sibilos. Fisiopatologicamente, como os sibilos são produzidos?",
+                "options": [
+                    { "text": "Pelo atrito entre as pleuras inflamadas.", "is_correct": false },
+                    { "text": "Pela abertura súbita de alvéolos colabados.", "is_correct": false },
+                    { "text": "Pela vibração das paredes bronquiolares e do conteúdo gasoso ao passar por ductos estreitados (broncoconstrição, edema, muco).", "is_correct": true },
+                    { "text": "Pelo excesso de secreção em vias aéreas de grande calibre, gerando um som de baixa frequência.", "is_correct": false }
+                ],
+                "justification": "Sibilos são sons contínuos, agudos (alta frequência), gerados pela passagem do ar através de vias aéreas estreitadas (obstruídas) nas pequenas vias (bronquíolos). Esse estreitamento pode ser por broncoespasmo (asma), edema da mucosa ou secreção espessa. Os roncos, por outro lado, são graves e vêm das grandes vias aéreas com secreção."
+            },
+            {
+                "id": 39,
+                "text": "A Doença Pulmonar Obstrutiva Crônica (DPOC) engloba tanto a bronquite crônica quanto o enfisema. Na fisiopatologia do enfisema pulmonar, o que ocorre com as estruturas do parênquima?",
+                "options": [
+                    { "text": "Há inflamação crônica restrita aos brônquios principais com hipersecreção de muco.", "is_correct": false },
+                    { "text": "Ocorre a destruição permanente dos septos alveolares distais aos bronquíolos terminais e a perda da retração elástica do pulmão.", "is_correct": true },
+                    { "text": "Ocorre a hipertrofia compensatória dos capilares pulmonares devido à hipóxia alveolar local e neovascularização do leito intersticial difuso basal bilateral reverso de colapso arterial maciço das malhas pulmonar e brônquicas e shunt do coracao inflamatorio vascular denso pulmonar.", "is_correct": false },
+                    { "text": "A fibrose difusa e intensa do tecido intersticial causa um aumento desproporcional da complacência e da elasticidade com diminuição grave do volume total expansível elástico lobar.", "is_correct": false }
+                ],
+                "justification": "O enfisema é definido anatomicamente pela destruição das paredes alveolares (septos), o que leva a uma fusão de espaços aéreos menores em espaços maiores, não funcionais. Isso causa uma drástica perda da elasticidade e da \"retração elástica\" (que normalmente ajuda a esvaziar o pulmão na expiração). O resultado é que as pequenas vias aéreas colapsam prematuramente durante a expiração e o ar fica aprisionado no pulmão (hiperinsuflação)."
+            },
+            {
+                "id": 40,
+                "text": "Na síndrome de atelectasia obstrutiva (por exemplo, por um corpo estranho ou rolha de muco), o parênquima pulmonar distal à obstrução colapsa por reabsorção do ar. No exame físico da percussão e da ausculta, o que é classicamente encontrado sobre a área atelectasiada?",
+                "options": [
+                    { "text": "Hipertimpanismo e estertores finos.", "is_correct": false },
+                    { "text": "Macicez (ou submacicez) e murmúrio vesicular diminuído ou abolido.", "is_correct": true },
+                    { "text": "Som claro atimpânico e sopro anfórico.", "is_correct": false },
+                    { "text": "Hipersonoridade e som bronquial.", "is_correct": false }
+                ],
+                "justification": "A área atelectasiada perde seu ar (que é reabsorvido pelo sangue capilar alveolar ou colabado) e o tecido torna-se mais denso e compacto, retraído. Como o ar é o responsável por propagar o som claro pulmonar da percussão normal percutida na pele ou pela propagação do som de expansão ressonante normal alveolar nas acústicas da via do murmúrio vesicular, o colapso e condensação de ar no parênquima reflete localmente num exame semiológico o clássico som abolido de macicez absoluta à percussão local do dedo e o silencio de um murmúrio vesicular inaudível ausente da bolha do pulmão fechado subjacente da ausculta obstrutiva colapsada."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOptionIndex = null;
+
+        // Elements
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionCounter = document.getElementById('question-counter');
+        const scoreDisplay = document.getElementById('score-display');
+        const progressBar = document.getElementById('progress-bar');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackContainer = document.getElementById('feedback-container');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackText = document.getElementById('feedback-text');
+        const btnConfirm = document.getElementById('btn-confirm');
+        const btnNext = document.getElementById('btn-next');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const performanceMsg = document.getElementById('performance-msg');
+        const resultIcon = document.getElementById('result-icon');
+
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            // Reset UI
+            selectedOptionIndex = null;
+            btnConfirm.disabled = true;
+            btnConfirm.classList.remove('hidden');
+            btnNext.classList.add('hidden');
+            feedbackContainer.classList.add('hidden');
+            optionsContainer.innerHTML = '';
+
+            const question = quizData[currentQuestionIndex];
+            
+            // Update Headers
+            questionCounter.innerText = `Questão ${currentQuestionIndex + 1} de ${quizData.length}`;
+            scoreDisplay.innerText = `Acertos: ${score}`;
+            progressBar.style.width = `${((currentQuestionIndex + 1) / quizData.length) * 100}%`;
+            questionText.innerText = `${currentQuestionIndex + 1}. ${question.text}`;
+
+            // Create Options
+            question.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left p-4 rounded-lg border-2 border-gray-200 bg-white hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3';
+                btn.innerHTML = `<span class="font-bold mr-2 text-gray-500">${String.fromCharCode(65 + index)}.</span> ${option.text}`;
+                btn.onclick = () => selectOption(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectOption(index, buttonElement) {
+            selectedOptionIndex = index;
+            
+            // Remove selection class from all
+            const buttons = optionsContainer.querySelectorAll('button');
+            buttons.forEach(btn => btn.classList.remove('selected', 'border-blue-500', 'bg-blue-50'));
+            
+            // Add to current
+            buttonElement.classList.add('selected', 'border-blue-500', 'bg-blue-50');
+            
+            btnConfirm.disabled = false;
+        }
+
+        function confirmAnswer() {
+            const question = quizData[currentQuestionIndex];
+            const isCorrect = question.options[selectedOptionIndex].is_correct;
+            const buttons = optionsContainer.querySelectorAll('button');
+
+            // Disable all buttons to prevent changing answer
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                btn.classList.remove('hover:border-blue-300'); // remove hover
+                
+                if (question.options[idx].is_correct) {
+                    btn.classList.add('correct');
+                    btn.classList.remove('border-gray-200', 'selected');
+                } else if (idx === selectedOptionIndex && !isCorrect) {
+                    btn.classList.add('incorrect');
+                    btn.classList.remove('selected', 'border-blue-500', 'bg-blue-50');
+                }
+            });
+
+            if (isCorrect) {
+                score++;
+                feedbackTitle.innerText = "Resposta Correta! ✅";
+                feedbackTitle.className = "font-bold text-lg mb-2 text-green-700";
+                feedbackContainer.className = "mb-8 p-5 rounded-lg border-l-4 border-green-500 bg-green-50";
+            } else {
+                feedbackTitle.innerText = "Resposta Incorreta ❌";
+                feedbackTitle.className = "font-bold text-lg mb-2 text-red-700";
+                feedbackContainer.className = "mb-8 p-5 rounded-lg border-l-4 border-red-500 bg-red-50";
+            }
+
+            scoreDisplay.innerText = `Acertos: ${score}`;
+            feedbackText.innerText = question.justification;
+            feedbackContainer.classList.remove('hidden');
+
+            btnConfirm.classList.add('hidden');
+            btnNext.classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            
+            finalScoreDisplay.innerText = score;
+            
+            const percentage = (score / quizData.length) * 100;
+            
+            if (percentage >= 80) {
+                performanceMsg.innerText = "Excelente desempenho! Você demonstrou forte domínio em clínica e propedêutica.";
+                performanceMsg.className = "text-xl font-medium mb-8 text-green-600";
+                resultIcon.className = "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-100 text-green-600";
+                resultIcon.innerHTML = `<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>`;
+            } else if (percentage >= 60) {
+                performanceMsg.innerText = "Bom trabalho! Uma revisão nos pontos errados garantirá sua aprovação.";
+                performanceMsg.className = "text-xl font-medium mb-8 text-yellow-600";
+                resultIcon.className = "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-yellow-100 text-yellow-600";
+                resultIcon.innerHTML = `<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            } else {
+                performanceMsg.innerText = "Recomendamos revisar os resumos de propedêutica e refazer o simulado.";
+                performanceMsg.className = "text-xl font-medium mb-8 text-red-600";
+                resultIcon.className = "w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 bg-red-100 text-red-600";
+                resultIcon.innerHTML = `<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+            }
+        }
+
+        function restartQuiz() {
+            score = 0;
+            currentQuestionIndex = 0;
+            resultScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            loadQuestion();
+        }
+    </script>
+</body>
+</html>
